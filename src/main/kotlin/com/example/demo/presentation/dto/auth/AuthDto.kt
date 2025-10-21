@@ -91,7 +91,7 @@ data class VerifyOtpByEmailRequest(
     val otp: String
 )
 
-data class Otp(
+data class OtpDto(
     val id: String,             // FK to User.id — links OTP to specific user (enforces one-to-one)
     val hashedOtp: String,          // Store only the hashed OTP for security
     val otp: String,          // Store OTP for Email

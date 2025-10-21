@@ -2,7 +2,7 @@ package com.example.demo.infrastructure.utils
 
 
 import com.example.demo.infrastructure.security.PasswordHasher
-import com.example.demo.presentation.dto.auth.Otp
+import com.example.demo.presentation.dto.auth.OtpDto
 import java.time.Instant
 import java.time.temporal.ChronoUnit
 import org.springframework.stereotype.Component
@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component
 object OtpUtils {
 
     // Generate OTP for the given userId
-    fun generateOtp(userId: String): Otp {
+    fun generateOtp(userId: String): OtpDto {
         val otp = generateRandomOtp()
         val hashedOtp = hashOtp(otp)
         val otpRequestedAt = Instant.now()
         val expiresAt = otpRequestedAt.plus(10, ChronoUnit.MINUTES)
 
-        return Otp(
+        return OtpDto(
             id = userId,
             hashedOtp = hashedOtp,
             otpRequestedAt = otpRequestedAt,
@@ -27,7 +27,7 @@ object OtpUtils {
     }
 
     // Verify OTP: Check expiry and correctness
-    fun verifyOtp(storedOtp: Otp, inputOtp: String): Boolean {
+    fun verifyOtp(storedOtp: OtpDto, inputOtp: String): Boolean {
         if (Instant.now().isAfter(storedOtp.expiresAt)) {
             Log.warn("OTP expired for user: ${storedOtp.id}")
             return false

@@ -1,23 +1,12 @@
 package com.example.demo.presentation.controller.auth
 
+import com.example.demo.infrastructure.constants.MessageConstants
 import com.example.demo.infrastructure.utils.ResponseFactory
-import com.example.demo.presentation.dto.auth.ForgetPasswordSendOtpRequest
-import com.example.demo.presentation.dto.auth.LoginRequest
-import com.example.demo.presentation.dto.auth.LoginWithFacebookDto
-import com.example.demo.presentation.dto.auth.LoginWithGoogleDto
-import com.example.demo.presentation.dto.auth.RegisterRequest
-import com.example.demo.presentation.dto.auth.ResendOtpByEmailRequest
-import com.example.demo.presentation.dto.auth.ResendOtpRequest
-import com.example.demo.presentation.dto.auth.ResetPasswordRequest
-import com.example.demo.presentation.dto.auth.VerifyOtpByEmailRequest
-import com.example.demo.presentation.dto.auth.VerifyOtpRequest
+import com.example.demo.presentation.dto.auth.*
+import com.example.demo.presentation.service.auth.AuthService
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 
 @RestController
 @RequestMapping("/api/auth")
@@ -25,80 +14,92 @@ class AuthController(
     private val authService: AuthService
 ) {
 
-    // 🔹 Register new user
+    // -------------------------------------------------------------------------
+    // 🟢 REGISTER
+    // -------------------------------------------------------------------------
     @PostMapping("/register")
     fun register(@RequestBody body: RegisterRequest): ResponseEntity<*> {
-        val user = authService.register(body)
-        return ResponseFactory.success(HttpStatus.CREATED, "User registered! OTP sent to email.", user)
+        val response = authService.register(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 
-    // 🔹 Login with email/password
+    // -------------------------------------------------------------------------
+    // 🟡 LOGIN
+    // -------------------------------------------------------------------------
     @PostMapping("/login")
     fun login(@RequestBody body: LoginRequest): ResponseEntity<*> {
-        val user = authService.login(body)
-        return ResponseFactory.success(HttpStatus.OK, "Login successfully", user)
+        val response = authService.login(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 
-    // 🔹 Login with Google
-    @PostMapping("/login/google")
-    fun loginWithGoogle(@RequestBody body: LoginWithGoogleDto): ResponseEntity<*> {
-        val user = authService.loginWithGoogle(body)
-        return ResponseFactory.success(HttpStatus.OK, "User logged in successfully", user)
-    }
-
-    // 🔹 Login with Facebook
-    @PostMapping("/login/facebook")
-    fun loginWithFacebook(@RequestBody body: LoginWithFacebookDto): ResponseEntity<*> {
-        val user = authService.loginWithFacebook(body)
-        return ResponseFactory.success(HttpStatus.OK, "User logged in successfully", user)
-    }
-
-    // 🔹 Verify OTP by user ID
-    @PostMapping("/verify-otp")
-    fun verifyOtp(@RequestBody body: VerifyOtpRequest): ResponseEntity<*> {
-        val user = authService.verifyOtp(body)
-        return ResponseFactory.success(HttpStatus.OK, "OTP verified successfully", user)
-    }
-
-    // 🔹 Verify OTP by email
-    @PostMapping("/verify-otp/email")
-    fun verifyOtpByEmail(@RequestBody body: VerifyOtpByEmailRequest): ResponseEntity<*> {
-        val user = authService.verifyOtpByEmail(body)
-        return ResponseFactory.success(HttpStatus.OK, "OTP verified successfully", user)
-    }
-
-    // 🔹 Resend OTP (by userId)
-    @PostMapping("/resend-otp")
-    fun resendOtp(@RequestBody body: ResendOtpRequest): ResponseEntity<*> {
-        authService.resendOtp(body)
-        return ResponseFactory.success(HttpStatus.OK, "New OTP sent to your email", "")
-    }
-
-    // 🔹 Resend OTP by email
-    @PostMapping("/resend-otp/email")
+    // -------------------------------------------------------------------------
+    // 🔁 RESEND OTP BY EMAIL
+    // -------------------------------------------------------------------------
+    @PostMapping("/resendOtpByEmail")
     fun resendOtpByEmail(@RequestBody body: ResendOtpByEmailRequest): ResponseEntity<*> {
-        authService.resendOtpByEmail(body)
-        return ResponseFactory.success(HttpStatus.OK, "New OTP sent to your email", "")
+        val response = authService.resendOtpByEmail(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 
-    // 🔹 Forgot password (send OTP)
-    @PostMapping("/forget-password/send-otp")
+
+    // -------------------------------------------------------------------------
+    // 🔐 VERIFY OTP (BY USER ID)
+    // -------------------------------------------------------------------------
+    @PostMapping("/verifyOtp")
+    fun verifyOtp(@RequestBody body: VerifyOtpRequest): ResponseEntity<*> {
+        val response = authService.verifyOtp(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
+    }
+
+    @PostMapping("/verifyOtpByEmail")
+    fun verifyOtp(@RequestBody body: VerifyOtpByEmailRequest): ResponseEntity<*> {
+        val response = authService.verifyOtpByEmail(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
+    }
+
+    // -------------------------------------------------------------------------
+    // 🔄 FORGOT PASSWORD (SEND OTP)
+    // -------------------------------------------------------------------------
+    @PostMapping("/forgetPasswordSendOtp")
     fun forgetPasswordSendOtp(@RequestBody body: ForgetPasswordSendOtpRequest): ResponseEntity<*> {
-        authService.forgetPasswordSendOtp(body)
-        return ResponseFactory.success(HttpStatus.OK, "OTP sent to your email.", "")
+        val response = authService.forgetPasswordSendOtp(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 
-    // 🔹 Reset password
-    @PostMapping("/reset-password")
+    // -------------------------------------------------------------------------
+    // 🔁 RESET PASSWORD
+    // -------------------------------------------------------------------------
+    @PostMapping("/resetPassword")
     fun resetPassword(@RequestBody body: ResetPasswordRequest): ResponseEntity<*> {
-        authService.resetPassword(body)
-        return ResponseFactory.success(HttpStatus.OK, "Password reset successfully", "")
+        val response = authService.resetPassword(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 
-    // 🔹 Get all users (admin/debug)
+    // -------------------------------------------------------------------------
+    // 👥 GET ALL USERS
+    // -------------------------------------------------------------------------
     @GetMapping("/users")
     fun getAllUsers(): ResponseEntity<*> {
-        val users = authService.getAllUsers()
-        return ResponseFactory.success(HttpStatus.OK, "Fetched all users", users)
+        val response = authService.getAllUsers()
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
+    }
+
+    // -------------------------------------------------------------------------
+    // 🧩 SOCIAL LOGIN
+    // -------------------------------------------------------------------------
+
+    @PostMapping("/loginWithFacebook")
+    fun loginWithFacebook(@RequestBody body: LoginWithFacebookDto): ResponseEntity<*> {
+        // You can later integrate Facebook OAuth here
+        return ResponseFactory.error(
+            HttpStatus.NOT_IMPLEMENTED,
+            MessageConstants.System.FEATURE_UNAVAILABLE
+        )
+    }
+
+    @PostMapping("/loginWithGoogle")
+    fun loginWithGoogle(@RequestBody body: LoginWithGoogleDto): ResponseEntity<*> {
+        val response = authService.loginWithGoogle(body)
+        return ResponseEntity(response, HttpStatus.valueOf(response.status))
     }
 }

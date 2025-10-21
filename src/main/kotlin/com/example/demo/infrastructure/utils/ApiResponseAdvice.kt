@@ -1,5 +1,6 @@
 package com.example.demo.infrastructure.utils
 
+import com.example.demo.infrastructure.constants.MessageConstants
 import com.example.demo.presentation.dto.ApiResponse
 import org.springframework.core.MethodParameter
 import org.springframework.http.MediaType
@@ -27,6 +28,7 @@ class ApiResponseAdvice : ResponseBodyAdvice<Any> {
     ): Any {
         if (body is ApiResponse<*> || body is Map<*, *> || body is String)
             return body
-        return ApiResponse(success = true, message = "Success", data = body)
+        if (body == null) return ApiResponse(status = 200, message = MessageConstants.General.SUCCESS, data = null)
+        return ApiResponse(status = 200, message = MessageConstants.General.FAILURE, data = body)
     }
 }

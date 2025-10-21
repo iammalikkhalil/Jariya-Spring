@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "jariya.foor.hasanat",
+      "sha256_cert_fingerprints": [
+        "8B:38:D3:D0:57:55:99:BB:88:8E:6E:12:E8:49:6B:20:91:24:41:8D:F9:B5:9E:5A:A6:19:89:1A:96:BB:93:74"
+      ]
+    }
+  }
+]

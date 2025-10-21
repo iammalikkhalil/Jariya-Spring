@@ -1,7 +1,7 @@
 package com.example.demo.infrastructure.utils
 
 
-import com.example.demo.presentation.dto.ApiError
+import com.example.demo.infrastructure.constants.MessageConstants
 import com.example.demo.presentation.dto.ApiResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -10,14 +10,14 @@ object ResponseFactory {
 
     fun <T> success(
         status: HttpStatus = HttpStatus.OK,
-        message: String = "Success",
+        message: String = MessageConstants.General.SUCCESS,
         data: T? = null
     ): ResponseEntity<ApiResponse<T>> =
-        ResponseEntity(ApiResponse(true, message, data), status)
+        ResponseEntity(ApiResponse.success(status, message, data), status)
 
     fun error(
         status: HttpStatus = HttpStatus.BAD_REQUEST,
-        message: String = "Failed"
-    ): ResponseEntity<ApiError> =
-        ResponseEntity(ApiError(false, message), status)
+        message: String = MessageConstants.General.FAILURE,
+    ): ResponseEntity<ApiResponse<Nothing?>> =
+        ResponseEntity(ApiResponse.error(status, message), status)
 }
