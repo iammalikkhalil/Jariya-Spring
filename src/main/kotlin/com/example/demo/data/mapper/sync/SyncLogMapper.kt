@@ -6,11 +6,11 @@ import com.example.demo.domain.model.sync.SyncLogModel
 fun SyncLogEntity.toModel(): SyncLogModel =
     SyncLogModel(
         tName = tName,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 
 fun SyncLogModel.toEntity(): SyncLogEntity =
     SyncLogEntity(
         tName = tName,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )

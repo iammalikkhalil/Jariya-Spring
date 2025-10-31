@@ -12,13 +12,42 @@ import java.util.*
 @Repository
 interface UserDailySummaryJpaRepository : JpaRepository<UserDailySummaryEntity, UUID> {
 
-    fun findAllByIsDeletedFalse(): List<UserDailySummaryEntity>
+    // ✅ Use JOIN FETCH to load user in one query (avoid N+1)
+    @Query("""
+        SELECT uds
+        FROM UserDailySummaryEntity uds
+        JOIN FETCH uds.user u
+        WHERE uds.isDeleted = false
+        ORDER BY uds.updatedAt DESC
+    """)
+    fun findAllActive(): List<UserDailySummaryEntity>
 
-    fun findByUserIdAndIsDeletedFalse(userId: UUID): UserDailySummaryEntity?
+    // ✅ Load specific user’s summary eagerly
+    @Query("""
+        SELECT uds
+        FROM UserDailySummaryEntity uds
+        JOIN FETCH uds.user u
+        WHERE u.id = :userId
+          AND uds.isDeleted = false
+    """)
+    fun findActiveByUserId(@Param("userId") userId: UUID): UserDailySummaryEntity?
 
-    fun findByUpdatedAtAfter(updatedAt: Instant): List<UserDailySummaryEntity>
+    // ✅ Filter updated ones efficiently
+    @Query("""
+        SELECT uds
+        FROM UserDailySummaryEntity uds
+        JOIN FETCH uds.user u
+        WHERE uds.updatedAt > :updatedAt
+          AND uds.isDeleted = false
+        ORDER BY uds.updatedAt DESC
+    """)
+    fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<UserDailySummaryEntity>
 
     @Modifying
-    @Query("UPDATE UserDailySummaryEntity u SET u.isDeleted = true, u.deletedAt = :deletedAt WHERE u.id = :id")
+    @Query("""
+        UPDATE UserDailySummaryEntity uds
+        SET uds.isDeleted = true, uds.deletedAt = :deletedAt
+        WHERE uds.id = :id
+    """)
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
 }

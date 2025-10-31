@@ -9,7 +9,7 @@ fun FifteenLinesMadaniQuranEntity.toModel(): FifteenLinesMadaniQuranModel =
         lineNumber = lineNumber,
         textAr = textAr,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )
 
 fun FifteenLinesMadaniQuranModel.toEntity(): FifteenLinesMadaniQuranEntity =
@@ -18,5 +18,5 @@ fun FifteenLinesMadaniQuranModel.toEntity(): FifteenLinesMadaniQuranEntity =
         lineNumber = lineNumber,
         textAr = textAr,
         createdAt = createdAt,
-        updatedAt = updatedAt
+        updatedAt = updatedAt,
     )

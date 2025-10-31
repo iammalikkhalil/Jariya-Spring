@@ -22,19 +22,20 @@ class ReferralRepositoryImpl(
     private val userJpaRepository: UserJpaRepository
 ) : ReferralRepository {
 
-    override fun getAllReferrals(): List<ReferralModel> =
-        referralJpaRepository.findAll().map { it.toModel() }
+    // ✅ Eager fetch (JOIN FETCH already in repository)
+    override fun getAllReferrals(): List<ReferralModel> {
+        val start = System.currentTimeMillis()
+        Log.info("⏱ Fetching referral paths...")
+        val result = referralJpaRepository.findAllReferrals().map { it.toModel() }
+        Log.info("✅ getAllReferrals completed in ${System.currentTimeMillis() - start}ms (${result.size} records)")
+        return result
+    }
 
-    /**
-     * Checks if a referral path already exists or would create a cycle.
-     */
     override fun isAlreadyExists(ancestor: String, descendant: String): Boolean {
         val a = ancestor.toUUID()
         val d = descendant.toUUID()
+        if (a == d) return true
 
-        if (a == d) return true // self-referral
-
-        // Single DB check covers both direct and reverse link
         val exists = referralJpaRepository.existsByAncestorAndDescendant(a, d)
                 || referralJpaRepository.isCycleExists(a, d)
 
@@ -44,77 +45,62 @@ class ReferralRepositoryImpl(
         return exists
     }
 
-    /**
-     * Adds a new referral path (atomic & optimized).
-     */
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun addReferral(ancestor: String, descendant: String): Boolean {
-
-   Log.info("Data Layer Running....")
-
         val start = System.currentTimeMillis()
         val ancestorId = ancestor.toUUID()
         val descendantId = descendant.toUUID()
 
-//        if (ancestorId == descendantId)
-//            throw AppException(HttpStatus.BAD_REQUEST, "Self-referral is not allowed")
+        val users = userJpaRepository.findAllById(listOf(ancestorId, descendantId)).associateBy { it.id }
+        val ancestorUser = users[ancestorId]
+        val descendantUser = users[descendantId]
 
-//        try {
-            val users = userJpaRepository.findAllById(listOf(ancestorId, descendantId)).associateBy { it.id }
-            val ancestorUser = users[ancestorId]
-            val descendantUser = users[descendantId]
+        if (ancestorUser == null || descendantUser == null)
+            throw AppException(HttpStatus.NOT_FOUND, "Invalid ancestor or descendant reference")
 
-            if (ancestorUser == null || descendantUser == null)
-                throw AppException(HttpStatus.NOT_FOUND, "Invalid ancestor or descendant reference")
+        if (descendantUser.referredBy != null)
+            throw AppException(HttpStatus.CONFLICT, "User already referred by someone")
 
-            if (descendantUser.referredBy != null)
-                throw AppException(HttpStatus.CONFLICT, "User is already referred by someone")
+        if (referralJpaRepository.existsByAncestorAndDescendant(ancestorId, descendantId) ||
+            referralJpaRepository.isCycleExists(ancestorId, descendantId))
+            throw AppException(HttpStatus.CONFLICT, "Cycle or duplicate referral detected")
 
-            val duplicate = referralJpaRepository.existsByAncestorAndDescendant(ancestorId, descendantId)
-            val cycle = referralJpaRepository.isCycleExists(ancestorId, descendantId)
-            if (duplicate || cycle)
-                throw AppException(HttpStatus.CONFLICT, "Cycle or duplicate referral detected")
+        // ✅ Update user referral relationship
+        descendantUser.referredBy = ancestorUser.id
+        descendantUser.updatedAt = Instant.now()
+        userJpaRepository.save(descendantUser)
 
-            // Update user referral
-            descendantUser.referredBy = ancestorUser.id
-            descendantUser.updatedAt = Instant.now()
-            userJpaRepository.save(descendantUser)
+        // ✅ Fetch ancestors & descendants (lightweight ID+level)
+        val ancestors = referralJpaRepository.findAncestorsByDescendant(ancestorId)
+            .mapNotNull { (it[0] as? UUID)?.let { id -> id to (it[1] as Int) } }
 
-            // Build tree connections
-            val ancestors = referralJpaRepository.findAncestorsByDescendant(ancestorId)
-                .mapNotNull { (it[0] as? UUID)?.let { id -> id to (it[1] as Int) } }
-            val descendants = referralJpaRepository.findDescendantsByAncestor(descendantId)
-                .mapNotNull { (it[0] as? UUID)?.let { id -> id to (it[1] as Int) } }
+        val descendants = referralJpaRepository.findDescendantsByAncestor(descendantId)
+            .mapNotNull { (it[0] as? UUID)?.let { id -> id to (it[1] as Int) } }
 
-            val newPaths = ArrayList<ReferralPathEntity>((ancestors.size + 1) * (descendants.size + 1))
-            val fullAncestors = ancestors + (ancestorId to 0)
-            val fullDescendants = descendants + (descendantId to 0)
+        // ✅ Prebuild entities in memory (fast & efficient)
+        val newPaths = ArrayList<ReferralPathEntity>((ancestors.size + 1) * (descendants.size + 1))
+        val fullAncestors = ancestors + (ancestorId to 0)
+        val fullDescendants = descendants + (descendantId to 0)
 
-            for ((aId, aLevel) in fullAncestors) {
-                for ((dId, dLevel) in fullDescendants) {
-                    if (aId == dId) continue
-                    val aUser = users[aId] ?: userJpaRepository.getReferenceById(aId)
-                    val dUser = users[dId] ?: userJpaRepository.getReferenceById(dId)
-                    newPaths.add(
-                        ReferralPathEntity(
-                            id = ReferralPathId(aId, dId),
-                            ancestor = aUser,
-                            descendant = dUser,
-                            level = aLevel + dLevel + 1
-                        )
+        for ((aId, aLevel) in fullAncestors) {
+            for ((dId, dLevel) in fullDescendants) {
+                if (aId == dId) continue
+                val aUser = users[aId] ?: userJpaRepository.getReferenceById(aId)
+                val dUser = users[dId] ?: userJpaRepository.getReferenceById(dId)
+                newPaths.add(
+                    ReferralPathEntity(
+                        id = ReferralPathId(aId, dId),
+                        ancestor = aUser,
+                        descendant = dUser,
+                        level = aLevel + dLevel + 1
                     )
-                }
+                )
             }
+        }
 
-            referralJpaRepository.saveAll(newPaths)
-            Log.info("✅ Referral added ${ancestorUser.email} → ${descendantUser.email} (${System.currentTimeMillis() - start}ms)")
-       return true
-//        } catch (e: AppException) {
-//            throw e
-//        } catch (e: Exception) {
-//            Log.error("💥 Repository error: ${e.message}", e)
-//            throw AppException(HttpStatus.INTERNAL_SERVER_ERROR, "Unexpected DB error while adding referral")
-//        }
+        referralJpaRepository.saveAll(newPaths)
+        Log.info("✅ Referral added ${ancestorUser.email} → ${descendantUser.email} (${System.currentTimeMillis() - start}ms)")
+        return true
     }
 
     override fun getReferralTreeUp(ancestor: String): List<ReferralModel> =

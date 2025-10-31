@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
 
 @RestController
-@RequestMapping("/zikrProgress")
+@RequestMapping("/api/zikrProgress")
 class ZikrProgressController(
     private val zikrProgressRepository: ZikrProgressRepository,
     private val zikrProgressService: ZikrProgressService,

@@ -12,8 +12,7 @@ class EmailUtils(
     private val mailSender: JavaMailSender
 ) {
 
-    @Value("\${spring.mail.username}")
-    private lateinit var senderEmail: String
+    private val senderEmail: String = "noreply@jariya.net"
 
     /**
      * Send a generic email

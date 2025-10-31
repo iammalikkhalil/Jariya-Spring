@@ -20,19 +20,30 @@ class UserDailySummaryRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : UserDailySummaryRepository {
 
-    override fun getAllUserDailySummaries(): List<UserDailySummaryModel> =
-        userDailySummaryJpaRepository.findAllByIsDeletedFalse().map { it.toModel() }
+    // ✅ Eager load via JOIN FETCH, minimal queries
+    @Transactional(readOnly = true)
+    override fun getAllUserDailySummaries(): List<UserDailySummaryModel> {
+        val start = System.currentTimeMillis()
+        Log.info("⏱ Fetching user_daily_summary records (eager)...")
 
+        val result = userDailySummaryJpaRepository.findAllActive().map { it.toModel() }
+
+        Log.info("✅ getAllUserDailySummaries completed in ${System.currentTimeMillis() - start}ms (${result.size} records)")
+        return result
+    }
+
+    @Transactional(readOnly = true)
     override fun getUserDailySummaryById(id: String): UserDailySummaryModel? =
         userDailySummaryJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
 
+    @Transactional(readOnly = true)
     override fun getUserDailySummaryByUserId(id: String): UserDailySummaryModel? =
-        userDailySummaryJpaRepository.findByUserIdAndIsDeletedFalse(id.toUUID())?.toModel()
+        userDailySummaryJpaRepository.findActiveByUserId(id.toUUID())?.toModel()
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun createUserDailySummary(userDailySummary: UserDailySummaryModel): Boolean {
         return try {
-            val userEntity = userJpaRepository.findById(userDailySummary.userId.toUUID()).orElse(null) ?: return false
+            val userEntity = userJpaRepository.getReferenceById(userDailySummary.userId.toUUID())
             userDailySummaryJpaRepository.save(userDailySummary.toEntity(userEntity))
             syncLogRepository.updateSyncLog("user_daily_summary")
             Log.info("✅ Created UserDailySummary: ${userDailySummary.id}")
@@ -43,11 +54,11 @@ class UserDailySummaryRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     fun updateUserDailySummary(userDailySummary: UserDailySummaryModel): Boolean {
         return try {
             if (!userDailySummaryJpaRepository.existsById(userDailySummary.id.toUUID())) return false
-            val userEntity = userJpaRepository.findById(userDailySummary.userId.toUUID()).orElse(null) ?: return false
+            val userEntity = userJpaRepository.getReferenceById(userDailySummary.userId.toUUID())
             userDailySummaryJpaRepository.save(userDailySummary.toEntity(userEntity))
             syncLogRepository.updateSyncLog("user_daily_summary")
             Log.info("✅ Updated UserDailySummary: ${userDailySummary.id}")
@@ -58,13 +69,13 @@ class UserDailySummaryRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     fun deleteUserDailySummary(id: String): Boolean {
         return try {
             val deleted = userDailySummaryJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
             if (deleted > 0) {
                 syncLogRepository.updateSyncLog("user_daily_summary")
-                Log.info("✅ Soft-deleted UserDailySummary: $id")
+                Log.info("🗑 Soft deleted UserDailySummary: $id")
                 true
             } else false
         } catch (e: Exception) {
@@ -73,6 +84,7 @@ class UserDailySummaryRepositoryImpl(
         }
     }
 
+    @Transactional(readOnly = true)
     fun getUpdatedUserDailySummaries(updatedAt: Instant): List<UserDailySummaryModel> =
-        userDailySummaryJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
+        userDailySummaryJpaRepository.findUpdatedAfter(updatedAt).map { it.toModel() }
 }

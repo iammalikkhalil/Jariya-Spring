@@ -15,10 +15,10 @@ class OtpRepositoryImpl(
     private val otpJpaRepository: OtpJpaRepository
 ) : OtpRepository {
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun generateOtp(otp: OtpModel): Boolean {
         return try {
-            otpJpaRepository.save(otp.toEntity())
+            otpJpaRepository.saveAndFlush(otp.toEntity())   // flush immediately for better consistency
             true
         } catch (e: Exception) {
             Log.error("Error generating OTP: ${e.message}", e)
@@ -26,17 +26,18 @@ class OtpRepositoryImpl(
         }
     }
 
+    // Mark read-only for optimization, avoids transaction overhead
+    @Transactional(readOnly = true)
     override fun findOtpById(id: String): OtpModel? {
         return try {
-            val entity = otpJpaRepository.findOtpById(id.toUUID())
-            entity?.toModel()
+            otpJpaRepository.findOtpById(id.toUUID())?.toModel()
         } catch (e: Exception) {
             Log.error("Error finding OTP: ${e.message}", e)
             null
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun incrementOtpAttempts(id: String): Boolean {
         return try {
             otpJpaRepository.incrementOtpAttempts(id.toUUID()) > 0
@@ -46,7 +47,7 @@ class OtpRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun deleteOtpById(id: String): Boolean {
         return try {
             otpJpaRepository.deleteOtpById(id.toUUID()) > 0

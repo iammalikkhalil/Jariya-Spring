@@ -12,6 +12,7 @@ import com.example.demo.infrastructure.utils.toUUID
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import kotlin.system.measureTimeMillis
 
 @Repository
 class ZikrHadithTranslationRepositoryImpl(
@@ -20,16 +21,36 @@ class ZikrHadithTranslationRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : ZikrHadithTranslationRepository {
 
-    override fun getAllZikrHadithTranslations(): List<ZikrHadithTranslationModel> =
-        zikrHadithTranslationJpaRepository.findAllByIsDeletedFalse().map { it.toModel() }
+    // ✅ Single eager-loaded query
+    @Transactional(readOnly = true)
+    override fun getAllZikrHadithTranslations(): List<ZikrHadithTranslationModel> {
+        val start = System.currentTimeMillis()
+        Log.info("⏱ Fetching ZikrHadithTranslations with JOIN FETCH...")
 
-    override fun getZikrHadithTranslationById(id: String): ZikrHadithTranslationModel? =
-        zikrHadithTranslationJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+        lateinit var result: List<ZikrHadithTranslationModel>
+        val dbTime = measureTimeMillis {
+            val entities = zikrHadithTranslationJpaRepository.findAllActive()
+            result = entities.asSequence().map { it.toModel() }.toList()
+        }
 
-    @Transactional
+        Log.info("✅ getAllZikrHadithTranslations completed in ${System.currentTimeMillis() - start}ms (DB=${dbTime}ms)")
+        return result
+    }
+
+    @Transactional(readOnly = true)
+    override fun getZikrHadithTranslationById(id: String): ZikrHadithTranslationModel? {
+        return zikrHadithTranslationJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
     override fun createZikrHadithTranslation(zikrHadithTranslation: ZikrHadithTranslationModel): Boolean {
         return try {
-            val hadithEntity = zikrHadithJpaRepository.findById(zikrHadithTranslation.hadithId.toUUID()).orElse(null) ?: return false
+            val hadithEntity = zikrHadithJpaRepository.findById(zikrHadithTranslation.hadithId.toUUID()).orElse(null)
+            if (hadithEntity == null) {
+                Log.warn("⚠️ Hadith not found for ID ${zikrHadithTranslation.hadithId}")
+                return false
+            }
+
             zikrHadithTranslationJpaRepository.save(zikrHadithTranslation.toEntity(hadithEntity))
             syncLogRepository.updateSyncLog("zikr_hadith_translation")
             Log.info("✅ Created ZikrHadithTranslation: ${zikrHadithTranslation.id}")
@@ -40,11 +61,17 @@ class ZikrHadithTranslationRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateZikrHadithTranslation(zikrHadithTranslation: ZikrHadithTranslationModel): Boolean {
         return try {
             if (!zikrHadithTranslationJpaRepository.existsById(zikrHadithTranslation.id.toUUID())) return false
-            val hadithEntity = zikrHadithJpaRepository.findById(zikrHadithTranslation.hadithId.toUUID()).orElse(null) ?: return false
+
+            val hadithEntity = zikrHadithJpaRepository.findById(zikrHadithTranslation.hadithId.toUUID()).orElse(null)
+            if (hadithEntity == null) {
+                Log.warn("⚠️ Hadith not found for ID ${zikrHadithTranslation.hadithId}")
+                return false
+            }
+
             zikrHadithTranslationJpaRepository.save(zikrHadithTranslation.toEntity(hadithEntity))
             syncLogRepository.updateSyncLog("zikr_hadith_translation")
             Log.info("✅ Updated ZikrHadithTranslation: ${zikrHadithTranslation.id}")
@@ -55,21 +82,28 @@ class ZikrHadithTranslationRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun deleteZikrHadithTranslation(id: String): Boolean {
         return try {
             val deleted = zikrHadithTranslationJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
             if (deleted > 0) {
                 syncLogRepository.updateSyncLog("zikr_hadith_translation")
-                Log.info("✅ Soft-deleted ZikrHadithTranslation: $id")
+                Log.info("🗑 Soft-deleted ZikrHadithTranslation: $id")
                 true
-            } else false
+            } else {
+                false
+            }
         } catch (e: Exception) {
             Log.error("❌ Error deleting ZikrHadithTranslation: ${e.message}", e)
             false
         }
     }
 
-    override fun getUpdatedZikrHadithTranslations(updatedAt: Instant): List<ZikrHadithTranslationModel> =
-        zikrHadithTranslationJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
+    @Transactional(readOnly = true)
+    override fun getUpdatedZikrHadithTranslations(updatedAt: Instant): List<ZikrHadithTranslationModel> {
+        val start = System.currentTimeMillis()
+        val result = zikrHadithTranslationJpaRepository.findUpdatedAfter(updatedAt).map { it.toModel() }
+        Log.info("✅ getUpdatedZikrHadithTranslations fetched ${result.size} records in ${System.currentTimeMillis() - start}ms")
+        return result
+    }
 }

@@ -12,27 +12,86 @@ import java.util.*
 @Repository
 interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
 
-    fun findAllByIsDeletedFalse(): List<ZikrPointEntity>
+    // ✅ JOIN FETCH to load related entities (no N+1, 1 SQL query)
+    @Query("""
+        SELECT zp
+        FROM ZikrPointEntity zp
+        JOIN FETCH zp.user u
+        LEFT JOIN FETCH zp.zikr z
+        LEFT JOIN FETCH zp.progress p
+        JOIN FETCH zp.sourceUser su
+        WHERE zp.isDeleted = false
+        ORDER BY zp.updatedAt DESC
+    """)
+    fun findAllActive(): List<ZikrPointEntity>
 
-    fun findByUpdatedAtAfter(updatedAt: Instant): List<ZikrPointEntity>
+    @Query("""
+        SELECT zp
+        FROM ZikrPointEntity zp
+        JOIN FETCH zp.user u
+        LEFT JOIN FETCH zp.zikr z
+        LEFT JOIN FETCH zp.progress p
+        JOIN FETCH zp.sourceUser su
+        WHERE zp.updatedAt > :updatedAt
+          AND zp.isDeleted = false
+        ORDER BY zp.updatedAt DESC
+    """)
+    fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<ZikrPointEntity>
 
-    @Query("SELECT CASE WHEN COUNT(z) > 0 THEN true ELSE false END FROM ZikrPointEntity z WHERE z.progress.id = :progressId AND z.user.id = :userId AND z.level = :level AND z.isDeleted = false")
+    // ✅ Boolean existence check (native for speed)
+    @Query(
+        value = """
+        SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
+        FROM zikr_points 
+        WHERE progress_id = :progressId 
+          AND user_id = :userId 
+          AND level = :level
+          AND is_deleted = false
+        """,
+        nativeQuery = true
+    )
     fun existsByProgressAndUserAndLevel(
         @Param("progressId") progressId: UUID,
         @Param("userId") userId: UUID,
         @Param("level") level: Int
     ): Boolean
 
-    @Query("SELECT SUM(z.points) FROM ZikrPointEntity z WHERE z.user.id = :userId AND z.sourceType = 'REFERRAL' AND z.isDeleted = false")
+    // ✅ Aggregates remain native (faster)
+    @Query(
+        value = """
+        SELECT COALESCE(SUM(points), 0)
+        FROM zikr_points
+        WHERE user_id = :userId AND source_type = 'REFERRAL' AND is_deleted = false
+        """,
+        nativeQuery = true
+    )
     fun getReferralPoints(@Param("userId") userId: UUID): Int?
 
-    @Query("SELECT SUM(z.points) FROM ZikrPointEntity z WHERE z.user.id = :userId AND z.sourceType = 'ZIKR' AND z.isDeleted = false")
+    @Query(
+        value = """
+        SELECT COALESCE(SUM(points), 0)
+        FROM zikr_points
+        WHERE user_id = :userId AND source_type = 'ZIKR' AND is_deleted = false
+        """,
+        nativeQuery = true
+    )
     fun getZikrPoints(@Param("userId") userId: UUID): Int?
 
-    @Query("SELECT SUM(z.points) FROM ZikrPointEntity z WHERE z.sourceType = 'ZIKR' AND z.isDeleted = false")
+    @Query(
+        value = """
+        SELECT COALESCE(SUM(points), 0)
+        FROM zikr_points
+        WHERE source_type = 'ZIKR' AND is_deleted = false
+        """,
+        nativeQuery = true
+    )
     fun getTotalZikrPoints(): Int?
 
+    // ✅ Native for soft delete
     @Modifying
-    @Query("UPDATE ZikrPointEntity z SET z.isDeleted = true, z.deletedAt = :deletedAt WHERE z.id = :id")
+    @Query(
+        value = "UPDATE zikr_points SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
+        nativeQuery = true
+    )
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
 }

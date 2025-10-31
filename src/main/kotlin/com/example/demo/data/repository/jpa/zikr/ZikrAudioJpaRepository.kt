@@ -12,12 +12,33 @@ import java.util.*
 @Repository
 interface ZikrAudioJpaRepository : JpaRepository<ZikrAudioEntity, UUID> {
 
-    fun findAllByIsDeletedFalse(): List<ZikrAudioEntity>
+    // ✅ Eager load zikr in one query — prevents N+1 problem
+    @Query("""
+        SELECT za
+        FROM ZikrAudioEntity za
+        JOIN FETCH za.zikr z
+        WHERE za.isDeleted = false
+        ORDER BY za.updatedAt DESC
+    """)
+    fun findAllActive(): List<ZikrAudioEntity>
 
-    fun findByUpdatedAtAfter(updatedAt: Instant): List<ZikrAudioEntity>
+    // ✅ Fetch updated entries with eager zikr
+    @Query("""
+        SELECT za
+        FROM ZikrAudioEntity za
+        JOIN FETCH za.zikr z
+        WHERE za.updatedAt > :updatedAt
+          AND za.isDeleted = false
+        ORDER BY za.updatedAt DESC
+    """)
+    fun findUpdatedAfter(updatedAt: Instant): List<ZikrAudioEntity>
 
+    // ✅ Soft delete for speed
     @Transactional
     @Modifying
-    @Query("UPDATE ZikrAudioEntity z SET z.isDeleted = true, z.deletedAt = :deletedAt WHERE z.id = :id")
+    @Query(
+        value = "UPDATE zikr_audio_files SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
+        nativeQuery = true
+    )
     fun markAsDeleted(id: UUID, deletedAt: Instant): Int
 }

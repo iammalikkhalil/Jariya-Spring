@@ -4,35 +4,6 @@ import jakarta.persistence.*
 import java.io.Serializable
 import java.util.*
 
-//@Entity
-//@Table(name = "referral_paths")
-//@IdClass(ReferralPathEntity.ReferralPathId::class)
-//data class ReferralPathEntity(
-//
-//    // FK → users.id
-//    @Id
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "ancestor", referencedColumnName = "id", nullable = false)
-//    val ancestor: UserEntity,
-//
-//    // FK → users.id
-//    @Id
-//    @ManyToOne(fetch = FetchType.LAZY)
-//    @JoinColumn(name = "descendant", referencedColumnName = "id", nullable = false)
-//    val descendant: UserEntity,
-//
-//    @Column(name = "level", nullable = false)
-//    val level: Int // 1 = direct referrer, 2 = grandparent, etc.
-//) {
-//    // Composite primary key — uses ancestor.id and descendant.id
-//    data class ReferralPathId(
-//        val ancestor: UUID = UUID(0, 0),
-//        val descendant: UUID = UUID(0, 0)
-//    ) : Serializable
-//}
-
-
-
 
 @Entity
 @Table(name = "referral_paths")

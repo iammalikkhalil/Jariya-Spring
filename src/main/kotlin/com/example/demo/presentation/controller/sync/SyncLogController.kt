@@ -10,7 +10,7 @@ import java.time.Instant
 import java.time.format.DateTimeParseException
 
 @RestController
-@RequestMapping("/sync")
+@RequestMapping("/api/sync")
 class SyncLogController(
     private val syncLogService: SyncLogService
 ) {

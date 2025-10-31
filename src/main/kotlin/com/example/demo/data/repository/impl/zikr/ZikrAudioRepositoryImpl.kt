@@ -20,16 +20,30 @@ class ZikrAudioRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : ZikrAudioRepository {
 
-    override fun getAllZikrAudios(): List<ZikrAudioModel> =
-        zikrAudioJpaRepository.findAllByIsDeletedFalse().map { it.toModel() }
+    // ✅ Fast eager-load read
+    @Transactional(readOnly = true)
+    override fun getAllZikrAudios(): List<ZikrAudioModel> {
+        val start = System.currentTimeMillis()
+        Log.info("⏱ Fetching ZikrAudio with JOIN FETCH...")
+        val result = zikrAudioJpaRepository.findAllActive().map { it.toModel() }
+        Log.info("✅ getAllZikrAudios completed in ${System.currentTimeMillis() - start}ms (${result.size} records)")
+        return result
+    }
 
-    override fun getZikrAudioById(id: String): ZikrAudioModel? =
-        zikrAudioJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+    @Transactional(readOnly = true)
+    override fun getZikrAudioById(id: String): ZikrAudioModel? {
+        return zikrAudioJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+    }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun createZikrAudio(zikrAudio: ZikrAudioModel): Boolean {
         return try {
-            val zikrEntity = zikrJpaRepository.findById(zikrAudio.zikrId.toUUID()).orElse(null) ?: return false
+            val zikrEntity = zikrJpaRepository.findById(zikrAudio.zikrId.toUUID()).orElse(null)
+            if (zikrEntity == null) {
+                Log.error("❌ Zikr not found for ID: ${zikrAudio.zikrId}")
+                return false
+            }
+
             zikrAudioJpaRepository.save(zikrAudio.toEntity(zikrEntity))
             syncLogRepository.updateSyncLog("zikr_audio")
             Log.info("✅ Created ZikrAudio: ${zikrAudio.id}")
@@ -40,11 +54,20 @@ class ZikrAudioRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateZikrAudio(zikrAudio: ZikrAudioModel): Boolean {
         return try {
-            if (!zikrAudioJpaRepository.existsById(zikrAudio.id.toUUID())) return false
-            val zikrEntity = zikrJpaRepository.findById(zikrAudio.zikrId.toUUID()).orElse(null) ?: return false
+            if (!zikrAudioJpaRepository.existsById(zikrAudio.id.toUUID())) {
+                Log.error("❌ ZikrAudio not found for update: ${zikrAudio.id}")
+                return false
+            }
+
+            val zikrEntity = zikrJpaRepository.findById(zikrAudio.zikrId.toUUID()).orElse(null)
+            if (zikrEntity == null) {
+                Log.error("❌ Zikr not found for ID: ${zikrAudio.zikrId}")
+                return false
+            }
+
             zikrAudioJpaRepository.save(zikrAudio.toEntity(zikrEntity))
             syncLogRepository.updateSyncLog("zikr_audio")
             Log.info("✅ Updated ZikrAudio: ${zikrAudio.id}")
@@ -55,21 +78,28 @@ class ZikrAudioRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun deleteZikrAudio(id: String): Boolean {
         return try {
             val updated = zikrAudioJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
             if (updated > 0) {
                 syncLogRepository.updateSyncLog("zikr_audio")
-                Log.info("✅ Deleted ZikrAudio (soft): $id")
+                Log.info("🗑 Soft deleted ZikrAudio: $id")
                 true
-            } else false
+            } else {
+                false
+            }
         } catch (e: Exception) {
             Log.error("❌ Error deleting ZikrAudio: ${e.message}", e)
             false
         }
     }
 
-    override fun getUpdatedZikrAudios(updatedAt: Instant): List<ZikrAudioModel> =
-        zikrAudioJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
+    @Transactional(readOnly = true)
+    override fun getUpdatedZikrAudios(updatedAt: Instant): List<ZikrAudioModel> {
+        val start = System.currentTimeMillis()
+        val result = zikrAudioJpaRepository.findUpdatedAfter(updatedAt).map { it.toModel() }
+        Log.info("✅ getUpdatedZikrAudios returned ${result.size} records in ${System.currentTimeMillis() - start}ms")
+        return result
+    }
 }

@@ -12,12 +12,37 @@ import java.util.*
 @Repository
 interface ZikrTranslationJpaRepository : JpaRepository<ZikrTranslationEntity, UUID> {
 
-    fun findAllByIsDeletedFalse(): List<ZikrTranslationEntity>
+    // ✅ Eager fetch to load zikr in one go
+    @Query("""
+        SELECT zt
+        FROM ZikrTranslationEntity zt
+        JOIN FETCH zt.zikr z
+        WHERE zt.isDeleted = false
+        ORDER BY zt.updatedAt DESC
+    """)
+    fun findAllActive(): List<ZikrTranslationEntity>
 
-    fun findByUpdatedAtAfter(updatedAt: Instant): List<ZikrTranslationEntity>
+    // ✅ Same pattern for incremental sync
+    @Query("""
+        SELECT zt
+        FROM ZikrTranslationEntity zt
+        JOIN FETCH zt.zikr z
+        WHERE zt.updatedAt > :updatedAt
+          AND zt.isDeleted = false
+        ORDER BY zt.updatedAt DESC
+    """)
+    fun findUpdatedAfter(updatedAt: Instant): List<ZikrTranslationEntity>
 
+    // ✅ Lightweight native soft delete
     @Transactional
-    @Modifying
-    @Query("UPDATE ZikrTranslationEntity z SET z.isDeleted = true, z.deletedAt = :deletedAt WHERE z.id = :id")
+    @Modifying(clearAutomatically = true)
+    @Query(
+        value = """
+            UPDATE zikr_translations
+            SET is_deleted = true, deleted_at = :deletedAt
+            WHERE id = :id
+        """,
+        nativeQuery = true
+    )
     fun markAsDeleted(id: UUID, deletedAt: Instant): Int
 }

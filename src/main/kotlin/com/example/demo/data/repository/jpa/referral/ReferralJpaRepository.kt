@@ -1,4 +1,3 @@
-// 🧩 ReferralJpaRepository.kt
 package com.example.demo.data.repository.jpa.referral
 
 import com.example.demo.data.entity.ReferralPathEntity
@@ -12,41 +11,83 @@ import java.util.*
 @Repository
 interface ReferralJpaRepository : JpaRepository<ReferralPathEntity, UUID> {
 
-    @Query("SELECT r FROM ReferralPathEntity r")
+    // ✅ Eager load both sides (ancestor & descendant users) to prevent N+1
+    @Query("""
+        SELECT r
+        FROM ReferralPathEntity r
+        JOIN FETCH r.ancestor a
+        JOIN FETCH r.descendant d
+        ORDER BY r.level ASC
+    """)
     fun findAllReferrals(): List<ReferralPathEntity>
 
-    @Query("SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END FROM ReferralPathEntity r WHERE r.ancestor.id = :ancestor AND r.descendant.id = :descendant")
+    // ✅ Existence check - optimized single query
+    @Query("""
+        SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
+        FROM ReferralPathEntity r
+        WHERE r.ancestor.id = :ancestor AND r.descendant.id = :descendant
+    """)
     fun existsByAncestorAndDescendant(
         @Param("ancestor") ancestor: UUID,
         @Param("descendant") descendant: UUID
     ): Boolean
 
-
+    // ✅ Cycle detection
     @Query("""
-    SELECT CASE WHEN COUNT(r) > 0 THEN true ELSE false END
-    FROM ReferralPathEntity r
-    WHERE r.ancestor.id = :descendant AND r.descendant.id = :ancestor
-""")
-    fun isCycleExists(@Param("ancestor") ancestor: UUID, @Param("descendant") descendant: UUID): Boolean
+        SELECT CASE WHEN COUNT(r) > 0 THEN TRUE ELSE FALSE END
+        FROM ReferralPathEntity r
+        WHERE r.ancestor.id = :descendant AND r.descendant.id = :ancestor
+    """)
+    fun isCycleExists(
+        @Param("ancestor") ancestor: UUID,
+        @Param("descendant") descendant: UUID
+    ): Boolean
 
-
-
-    @Query("SELECT r.ancestor.id, r.level FROM ReferralPathEntity r WHERE r.descendant.id = :descendant")
+    // ✅ Fetch ancestors (light query — IDs only)
+    @Query("""
+        SELECT r.ancestor.id, r.level
+        FROM ReferralPathEntity r
+        WHERE r.descendant.id = :descendant
+    """)
     fun findAncestorsByDescendant(@Param("descendant") descendant: UUID): List<Array<Any>>
 
-    @Query("SELECT r.descendant.id, r.level FROM ReferralPathEntity r WHERE r.ancestor.id = :ancestor")
+    // ✅ Fetch descendants (light query — IDs only)
+    @Query("""
+        SELECT r.descendant.id, r.level
+        FROM ReferralPathEntity r
+        WHERE r.ancestor.id = :ancestor
+    """)
     fun findDescendantsByAncestor(@Param("ancestor") ancestor: UUID): List<Array<Any>>
 
+    // ✅ Native delete for efficiency
     @Modifying
-    @Query("DELETE FROM ReferralPathEntity r WHERE r.ancestor.id = :ancestor AND r.descendant.id = :descendant")
+    @Query(
+        value = "DELETE FROM referral_paths WHERE ancestor = :ancestor AND descendant = :descendant",
+        nativeQuery = true
+    )
     fun deleteReferral(
         @Param("ancestor") ancestor: UUID,
         @Param("descendant") descendant: UUID
     ): Int
 
-    @Query("SELECT r FROM ReferralPathEntity r WHERE r.descendant.id = :userId ORDER BY r.level ASC")
+    // ✅ Tree queries with eager users
+    @Query("""
+        SELECT r
+        FROM ReferralPathEntity r
+        JOIN FETCH r.ancestor a
+        JOIN FETCH r.descendant d
+        WHERE r.descendant.id = :userId
+        ORDER BY r.level ASC
+    """)
     fun findReferralTreeUp(@Param("userId") userId: UUID): List<ReferralPathEntity>
 
-    @Query("SELECT r FROM ReferralPathEntity r WHERE r.ancestor.id = :userId ORDER BY r.level ASC")
+    @Query("""
+        SELECT r
+        FROM ReferralPathEntity r
+        JOIN FETCH r.ancestor a
+        JOIN FETCH r.descendant d
+        WHERE r.ancestor.id = :userId
+        ORDER BY r.level ASC
+    """)
     fun findReferralTreeDown(@Param("userId") userId: UUID): List<ReferralPathEntity>
 }

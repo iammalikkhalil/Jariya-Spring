@@ -22,7 +22,7 @@ class SyncLogRepositoryImpl(
     override fun getUpdatedSyncLogs(updatedAt: Instant): List<SyncLogModel> =
         syncLogJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateSyncLog(tName: String): Boolean {
         return try {
             val existing = syncLogJpaRepository.findByTName(tName)

@@ -11,7 +11,7 @@ import java.time.Instant
 import java.time.format.DateTimeParseException
 
 @RestController
-@RequestMapping("/zikrReward")
+@RequestMapping("/api/zikrReward")
 class ZikrRewardController(
     private val zikrRewardService: ZikrRewardService
 ) {

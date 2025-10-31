@@ -11,7 +11,7 @@ import java.time.Instant
 import java.time.format.DateTimeParseException
 
 @RestController
-@RequestMapping("/zikrAudio")
+@RequestMapping("/api/zikrAudio")
 class ZikrAudioController(
     private val zikrAudioService: ZikrAudioService
 ) {

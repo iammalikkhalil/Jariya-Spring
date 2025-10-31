@@ -12,25 +12,78 @@ import java.util.*
 @Repository
 interface ZikrProgressJpaRepository : JpaRepository<ZikrProgressEntity, UUID> {
 
-    fun findAllByIsDeletedFalse(): List<ZikrProgressEntity>
+    // ✅ JOIN FETCH ensures user & zikr are loaded in single query (no N+1)
+    @Query("""
+        SELECT zp
+        FROM ZikrProgressEntity zp
+        JOIN FETCH zp.user u
+        LEFT JOIN FETCH zp.zikr z
+        WHERE zp.isDeleted = false
+        ORDER BY zp.updatedAt DESC
+    """)
+    fun findAllActive(): List<ZikrProgressEntity>
 
-    fun findAllByIsCompletedFalse(): List<ZikrProgressEntity>
+    // ✅ Fetch uncompleted with eager relations
+    @Query("""
+        SELECT zp
+        FROM ZikrProgressEntity zp
+        JOIN FETCH zp.user u
+        LEFT JOIN FETCH zp.zikr z
+        WHERE zp.isCompleted = false
+          AND zp.isDeleted = false
+        ORDER BY zp.updatedAt DESC
+    """)
+    fun findUncompleted(): List<ZikrProgressEntity>
 
-    fun findByUpdatedAtAfter(updatedAt: Instant): List<ZikrProgressEntity>
+    // ✅ Fetch updated entries with eager joins
+    @Query("""
+        SELECT zp
+        FROM ZikrProgressEntity zp
+        JOIN FETCH zp.user u
+        LEFT JOIN FETCH zp.zikr z
+        WHERE zp.updatedAt > :updatedAt
+          AND zp.isDeleted = false
+        ORDER BY zp.updatedAt DESC
+    """)
+    fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<ZikrProgressEntity>
 
+    // ✅ Soft delete (native for speed)
     @Modifying
-    @Query("UPDATE ZikrProgressEntity z SET z.isDeleted = true, z.deletedAt = :deletedAt WHERE z.id = :id")
+    @Query(
+        value = "UPDATE zikr_progress SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
+        nativeQuery = true
+    )
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
 
+    // ✅ Increment progress via native update
     @Modifying
-    @Query("UPDATE ZikrProgressEntity z SET z.processedLevels = :level, z.isStarted = true, z.updatedAt = :updatedAt WHERE z.id = :id")
+    @Query(
+        value = """
+        UPDATE zikr_progress
+        SET processed_levels = :level,
+            is_started = true,
+            updated_at = :updatedAt
+        WHERE id = :id
+        """,
+        nativeQuery = true
+    )
     fun incrementProgress(
         @Param("id") id: UUID,
         @Param("level") level: Int,
         @Param("updatedAt") updatedAt: Instant
     ): Int
 
+    // ✅ Mark as complete via native update
     @Modifying
-    @Query("UPDATE ZikrProgressEntity z SET z.isCompleted = true, z.syncedAt = :now, z.updatedAt = :now WHERE z.id = :id")
+    @Query(
+        value = """
+        UPDATE zikr_progress
+        SET is_completed = true,
+            synced_at = :now,
+            updated_at = :now
+        WHERE id = :id
+        """,
+        nativeQuery = true
+    )
     fun markAsComplete(@Param("id") id: UUID, @Param("now") now: Instant): Int
 }

@@ -11,8 +11,10 @@ import com.example.demo.domain.repository.zikr.ZikrCollectionMapRepository
 import com.example.demo.infrastructure.utils.Log
 import com.example.demo.infrastructure.utils.toUUID
 import org.springframework.stereotype.Repository
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import kotlin.system.measureTimeMillis
 
 @Repository
 class ZikrCollectionMapRepositoryImpl(
@@ -22,19 +24,45 @@ class ZikrCollectionMapRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : ZikrCollectionMapRepository {
 
-    override fun getAllZikrCollectionMaps(): List<ZikrCollectionMapModel> =
-        zikrCollectionMapJpaRepository.findAllByIsDeletedFalse().map { it.toModel() }
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    override fun getAllZikrCollectionMaps(): List<ZikrCollectionMapModel> {
+        val start = System.currentTimeMillis()
+        Log.info("⏱ [getAllZikrCollectionMaps] Fetching ZikrCollectionMap records (with JOIN FETCH)...")
 
-    override fun getZikrCollectionMapById(id: String): ZikrCollectionMapModel? =
-        zikrCollectionMapJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+        lateinit var result: List<ZikrCollectionMapModel>
+        var queryTime = 0L
+        var mappingTime = 0L
 
-    @Transactional
+        try {
+            queryTime = measureTimeMillis {
+                val entities = zikrCollectionMapJpaRepository.findAllActive()
+                result = entities.asSequence().map { it.toModel() }.toList()
+            }
+            mappingTime = System.currentTimeMillis() - start - queryTime
+            Log.info("✅ Query & mapping complete in ${queryTime + mappingTime}ms (DB=${queryTime}ms, map=${mappingTime}ms)")
+        } catch (e: Exception) {
+            Log.error("❌ Error in getAllZikrCollectionMaps(): ${e.message}", e)
+            throw e
+        }
+
+        Log.info("⏰ getAllZikrCollectionMaps total time = ${System.currentTimeMillis() - start}ms")
+        return result
+    }
+
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    override fun getZikrCollectionMapById(id: String): ZikrCollectionMapModel? {
+        return zikrCollectionMapJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
+    }
+
+    @Transactional(rollbackFor = [Exception::class])
     override fun createZikrCollectionMap(zikrCollectionMap: ZikrCollectionMapModel): Boolean {
         return try {
-            val zikrEntity = zikrJpaRepository.findById(zikrCollectionMap.zikrId.toUUID()).orElse(null) ?: return false
-            val collectionEntity = zikrCollectionJpaRepository.findById(zikrCollectionMap.collectionId.toUUID()).orElse(null) ?: return false
-            zikrCollectionMapJpaRepository.save(zikrCollectionMap.toEntity(zikrEntity, collectionEntity))
+            val zikrEntity = zikrJpaRepository.getReferenceById(zikrCollectionMap.zikrId.toUUID())
+            val collectionEntity = zikrCollectionJpaRepository.getReferenceById(zikrCollectionMap.collectionId.toUUID())
+
+            zikrCollectionMapJpaRepository.saveAndFlush(zikrCollectionMap.toEntity(zikrEntity, collectionEntity))
             syncLogRepository.updateSyncLog("zikr_collection_map")
+
             Log.info("✅ Created ZikrCollectionMap: ${zikrCollectionMap.id}")
             true
         } catch (e: Exception) {
@@ -43,14 +71,16 @@ class ZikrCollectionMapRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateZikrCollectionMap(zikrCollectionMap: ZikrCollectionMapModel): Boolean {
         return try {
             if (!zikrCollectionMapJpaRepository.existsById(zikrCollectionMap.id.toUUID())) return false
-            val zikrEntity = zikrJpaRepository.findById(zikrCollectionMap.zikrId.toUUID()).orElse(null) ?: return false
-            val collectionEntity = zikrCollectionJpaRepository.findById(zikrCollectionMap.collectionId.toUUID()).orElse(null) ?: return false
-            zikrCollectionMapJpaRepository.save(zikrCollectionMap.toEntity(zikrEntity, collectionEntity))
+            val zikrEntity = zikrJpaRepository.getReferenceById(zikrCollectionMap.zikrId.toUUID())
+            val collectionEntity = zikrCollectionJpaRepository.getReferenceById(zikrCollectionMap.collectionId.toUUID())
+
+            zikrCollectionMapJpaRepository.saveAndFlush(zikrCollectionMap.toEntity(zikrEntity, collectionEntity))
             syncLogRepository.updateSyncLog("zikr_collection_map")
+
             Log.info("✅ Updated ZikrCollectionMap: ${zikrCollectionMap.id}")
             true
         } catch (e: Exception) {
@@ -59,21 +89,25 @@ class ZikrCollectionMapRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun deleteZikrCollectionMap(id: String): Boolean {
         return try {
             val updated = zikrCollectionMapJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
             if (updated > 0) {
                 syncLogRepository.updateSyncLog("zikr_collection_map")
-                Log.info("✅ Soft-deleted ZikrCollectionMap: $id")
+                Log.info("🗑 Soft-deleted ZikrCollectionMap: $id")
                 true
-            } else false
+            } else {
+                false
+            }
         } catch (e: Exception) {
             Log.error("❌ Error deleting ZikrCollectionMap: ${e.message}", e)
             false
         }
     }
 
-    override fun getUpdatedZikrCollectionMaps(updatedAt: Instant): List<ZikrCollectionMapModel> =
-        zikrCollectionMapJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
+    @Transactional(readOnly = true, propagation = Propagation.SUPPORTS)
+    override fun getUpdatedZikrCollectionMaps(updatedAt: Instant): List<ZikrCollectionMapModel> {
+        return zikrCollectionMapJpaRepository.findUpdatedAfter(updatedAt).map { it.toModel() }
+    }
 }

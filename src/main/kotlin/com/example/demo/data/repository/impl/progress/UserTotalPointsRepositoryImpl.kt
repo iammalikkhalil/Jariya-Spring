@@ -18,16 +18,22 @@ class UserTotalPointsRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : UserTotalPointsRepository {
 
+    // ✅ Read-only transaction — no flush/commit overhead
+    @Transactional(readOnly = true)
     override fun getAllUserTotalPoints(): List<UserTotalPointsModel> =
-        userTotalPointsJpaRepository.findAllByIsDeletedFalse().map { it.toModel() }
+        userTotalPointsJpaRepository.findAllActive()
+            .asSequence()
+            .map { it.toModel() }
+            .toList()
 
+    @Transactional(readOnly = true)
     override fun getUserTotalPointById(id: String): UserTotalPointsModel? =
         userTotalPointsJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun createUserTotalPoint(userTotalPoint: UserTotalPointsModel): Boolean {
         return try {
-            userTotalPointsJpaRepository.save(userTotalPoint.toEntity())
+            userTotalPointsJpaRepository.saveAndFlush(userTotalPoint.toEntity())
             syncLogRepository.updateSyncLog("user_total_points")
             Log.info("✅ Created UserTotalPoints: ${userTotalPoint.id}")
             true
@@ -37,11 +43,11 @@ class UserTotalPointsRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     fun updateUserTotalPoint(userTotalPoint: UserTotalPointsModel): Boolean {
         return try {
             if (!userTotalPointsJpaRepository.existsById(userTotalPoint.id.toUUID())) return false
-            userTotalPointsJpaRepository.save(userTotalPoint.toEntity())
+            userTotalPointsJpaRepository.saveAndFlush(userTotalPoint.toEntity())
             syncLogRepository.updateSyncLog("user_total_points")
             Log.info("✅ Updated UserTotalPoints: ${userTotalPoint.id}")
             true
@@ -51,7 +57,7 @@ class UserTotalPointsRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     fun deleteUserTotalPoint(id: String): Boolean {
         return try {
             val deleted = userTotalPointsJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
@@ -66,6 +72,10 @@ class UserTotalPointsRepositoryImpl(
         }
     }
 
+    @Transactional(readOnly = true)
     fun getUpdatedUserTotalPoints(updatedAt: Instant): List<UserTotalPointsModel> =
-        userTotalPointsJpaRepository.findByUpdatedAtAfter(updatedAt).map { it.toModel() }
+        userTotalPointsJpaRepository.findUpdatedAfter(updatedAt)
+            .asSequence()
+            .map { it.toModel() }
+            .toList()
 }

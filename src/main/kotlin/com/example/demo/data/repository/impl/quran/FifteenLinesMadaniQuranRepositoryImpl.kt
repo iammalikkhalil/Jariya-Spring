@@ -21,7 +21,7 @@ class FifteenLinesMadaniQuranRepositoryImpl(
     override fun getPage(pageNumber: Int): List<FifteenLinesMadaniQuranModel> =
         quranJpaRepository.findAllByPageNumberOrderByLineNumberAsc(pageNumber).map { it.toModel() }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun insertLine(pageNumber: Int, lineNumber: Int, textAr: String): FifteenLinesMadaniQuranModel? {
         return try {
             val entity = FifteenLinesMadaniQuranModel(
@@ -40,7 +40,7 @@ class FifteenLinesMadaniQuranRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun updateLine(pageNumber: Int, lineNumber: Int, newTextAr: String): FifteenLinesMadaniQuranModel? {
         return try {
             val updated = quranJpaRepository.updateLine(pageNumber, lineNumber, newTextAr, Instant.now())
@@ -53,7 +53,7 @@ class FifteenLinesMadaniQuranRepositoryImpl(
         }
     }
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun deleteLine(pageNumber: Int, lineNumber: Int): Boolean {
         return try {
             quranJpaRepository.deleteLine(pageNumber, lineNumber) > 0
@@ -66,7 +66,7 @@ class FifteenLinesMadaniQuranRepositoryImpl(
     override fun getLastLine(): FifteenLinesMadaniQuranModel? =
         quranJpaRepository.findTopByOrderByPageNumberDescLineNumberDesc()?.toModel()
 
-    @Transactional
+    @Transactional(rollbackFor = [Exception::class])
     override fun bulkInsertLines(lines: List<FifteenLinesMadaniQuranModel>): List<FifteenLinesMadaniQuranModel> {
         return try {
             val entities = lines.map { it.copy(createdAt = Instant.now(), updatedAt = Instant.now()).toEntity() }
