@@ -30,7 +30,7 @@ fun ZikrEntity.toModel(): ZikrModel =
 
 fun ZikrModel.toEntity(): ZikrEntity =
     ZikrEntity(
-        id = UUID.fromString(id),
+//        id = UUID.fromString(id),
         textAr = textAr,
         transliteration = transliteration,
         titleEn = titleEn,

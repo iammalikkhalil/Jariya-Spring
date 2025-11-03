@@ -9,7 +9,7 @@ import java.util.*
 data class ZikrPointEntity(
 
     @Id
-    @GeneratedValue
+//    @GeneratedValue
     @Column(name = "id", nullable = false, unique = true)
     val id: UUID = UUID.randomUUID(),
 
