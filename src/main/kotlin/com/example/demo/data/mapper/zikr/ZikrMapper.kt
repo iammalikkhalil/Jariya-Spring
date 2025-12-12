@@ -2,10 +2,9 @@ package com.example.demo.data.mapper.zikr
 
 import com.example.demo.data.entity.ZikrEntity
 import com.example.demo.domain.model.zikr.ZikrModel
-import com.example.demo.infrastructure.utils.generateUUID
 import com.example.demo.presentation.dto.zikr.CsvZikrDto
 import java.time.Instant.now
-import java.util.*
+import java.util.UUID
 
 fun ZikrEntity.toModel(): ZikrModel =
     ZikrModel(
@@ -30,7 +29,7 @@ fun ZikrEntity.toModel(): ZikrModel =
 
 fun ZikrModel.toEntity(): ZikrEntity =
     ZikrEntity(
-//        id = UUID.fromString(id),
+        id = UUID.fromString(id),
         textAr = textAr,
         transliteration = transliteration,
         titleEn = titleEn,
@@ -49,9 +48,6 @@ fun ZikrModel.toEntity(): ZikrEntity =
         deletedAt = deletedAt
     )
 
-
-
-
 fun CsvZikrDto.toZikrEntity(zikrId: UUID): ZikrEntity =
     ZikrEntity(
         id = zikrId,
@@ -61,8 +57,8 @@ fun CsvZikrDto.toZikrEntity(zikrId: UUID): ZikrEntity =
         titleUr = titleUr,
         quantityNotes = null,
         sourceNotes = null,
-        isQuran = isQuran?: false,
-        isHadith = isHadith?: false,
+        isQuran = isQuran ?: false,
+        isHadith = isHadith ?: false,
         isVerified = false,
         charCount = charCount ?: 0,
         verifiedByName = null,
@@ -72,4 +68,3 @@ fun CsvZikrDto.toZikrEntity(zikrId: UUID): ZikrEntity =
         isDeleted = false,
         deletedAt = null
     )
-

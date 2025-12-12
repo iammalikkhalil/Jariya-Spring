@@ -6,6 +6,7 @@ import com.example.demo.presentation.dto.zikr.CsvZikrDto
 import com.example.demo.presentation.dto.zikr.GetZikrByIdDto
 import com.example.demo.presentation.dto.zikr.TimeDto
 import com.example.demo.presentation.service.zikr.ZikrService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -20,15 +21,28 @@ class ZikrController(
 
     @GetMapping("/getAll")
     fun getAllZikrs(): ResponseEntity<ApiResponse<Any>> {
-        val zikrs = zikrService.getAllZikrs()
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Fetched all Zikr records", zikrs))
+        val result = zikrService.getAllZikrs()
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                HttpStatus.OK,
+                "Fetched all Zikr records",
+                result
+            )
+        )
     }
 
     @PostMapping("/getById")
-    fun getZikrById(@RequestBody body: GetZikrByIdDto): ResponseEntity<ApiResponse<Any>> {
-        val zikr = zikrService.getZikrById(body.id)
-        return if (zikr != null) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Zikr found", zikr))
+    fun getZikrById(@Valid @RequestBody body: GetZikrByIdDto): ResponseEntity<ApiResponse<Any>> {
+        val record = zikrService.getZikrById(body.id)
+
+        return if (record != null) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "Zikr found",
+                    record
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(HttpStatus.NOT_FOUND, "Zikr not found"))
@@ -36,11 +50,19 @@ class ZikrController(
     }
 
     @PostMapping("/add")
-    fun createZikr(@RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
-        val zikr = zikrService.createZikr(body)
-        return if (zikr != null) {
+    fun createZikr(@Valid @RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
+
+        val result = zikrService.createZikr(body)
+
+        return if (result != null) {
             ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED, "Zikr created successfully", zikr))
+                .body(
+                    ApiResponse.success(
+                        HttpStatus.CREATED,
+                        "Zikr created successfully",
+                        result
+                    )
+                )
         } else {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create Zikr"))
@@ -48,10 +70,18 @@ class ZikrController(
     }
 
     @PostMapping("/update")
-    fun updateZikr(@RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
-        val success = zikrService.updateZikr(body)
-        return if (success) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Zikr updated successfully", null))
+    fun updateZikr(@Valid @RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
+
+        val updated = zikrService.updateZikr(body)
+
+        return if (updated) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "Zikr updated successfully",
+                    null
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(HttpStatus.NOT_FOUND, "Zikr not found or update failed"))
@@ -59,10 +89,18 @@ class ZikrController(
     }
 
     @PostMapping("/deleteById")
-    fun deleteZikr(@RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
-        val success = zikrService.deleteZikr(body.id ?: "")
-        return if (success) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Zikr deleted successfully", null))
+    fun deleteZikr(@Valid @RequestBody body: CreateZikrDto): ResponseEntity<ApiResponse<Any>> {
+
+        val deleted = zikrService.deleteZikr(body.id ?: "")
+
+        return if (deleted) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "Zikr deleted successfully",
+                    null
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(HttpStatus.NOT_FOUND, "Zikr not found or delete failed"))
@@ -71,8 +109,10 @@ class ZikrController(
 
     @PostMapping("/bulkInsertZikrs")
     fun bulkInsertZikrs(@RequestBody rows: List<CsvZikrDto>): ResponseEntity<Any> {
+
         val result = zikrService.bulkInsertZikrs(rows)
-        return if (result.successfulEntries!= 0) {
+
+        return if (result.successfulEntries != 0) {
             ResponseEntity.status(HttpStatus.CREATED).body(result)
         } else {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(result)
@@ -80,14 +120,26 @@ class ZikrController(
     }
 
     @PostMapping("/getUpdated")
-    fun getUpdated(@RequestBody body: TimeDto): ResponseEntity<ApiResponse<Any>> {
+    fun getUpdated(@Valid @RequestBody body: TimeDto): ResponseEntity<ApiResponse<Any>> {
         return try {
             val updatedAt = Instant.parse(body.updatedAt)
-            val zikrs = zikrService.getUpdatedZikrs(updatedAt)
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Zikr found", zikrs))
+            val result = zikrService.getUpdatedZikrs(updatedAt)
+
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "Zikr found",
+                    result
+                )
+            )
         } catch (e: DateTimeParseException) {
             ResponseEntity.badRequest()
-                .body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid datetime format. Use ISO-8601 like 2025-09-30T12:34:56Z"))
+                .body(
+                    ApiResponse.error(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid datetime format. Use ISO-8601 like 2025-09-30T12:34:56Z"
+                    )
+                )
         }
     }
 }

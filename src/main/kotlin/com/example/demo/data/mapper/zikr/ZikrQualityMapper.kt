@@ -3,7 +3,7 @@ package com.example.demo.data.mapper.zikr
 import com.example.demo.data.entity.ZikrEntity
 import com.example.demo.data.entity.ZikrQualityEntity
 import com.example.demo.domain.model.zikr.ZikrQualityModel
-import java.util.*
+import java.util.UUID
 
 fun ZikrQualityEntity.toModel(): ZikrQualityModel =
     ZikrQualityModel(
@@ -28,4 +28,3 @@ fun ZikrQualityModel.toEntity(
         isDeleted = isDeleted,
         deletedAt = deletedAt
     )
-

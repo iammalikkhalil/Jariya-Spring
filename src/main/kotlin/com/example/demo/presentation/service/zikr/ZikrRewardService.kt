@@ -1,9 +1,8 @@
 package com.example.demo.presentation.service.zikr
 
 import com.example.demo.domain.repository.zikr.ZikrRewardRepository
-import com.example.demo.presentation.dto.zikr.ZikrRewardDto
-import com.example.demo.presentation.dto.zikr.ZikrRewardDtoRequest
-import com.example.demo.presentation.dto.zikr.toDomain
+import com.example.demo.infrastructure.utils.generateUUID
+import com.example.demo.presentation.dto.zikr.*
 import org.springframework.stereotype.Service
 import java.time.Instant
 
@@ -12,38 +11,39 @@ class ZikrRewardService(
     private val zikrRewardRepository: ZikrRewardRepository
 ) {
 
-    fun getAllZikrRewards() = zikrRewardRepository.getAllZikrRewards()
+    fun getAllZikrRewards() =
+        zikrRewardRepository.getAllZikrRewards()
 
-    fun getZikrRewardById(id: String) = zikrRewardRepository.getZikrRewardById(id)
+    fun getZikrRewardById(id: String) =
+        zikrRewardRepository.getZikrRewardById(id)
 
-    fun createZikrReward(body: ZikrRewardDtoRequest): Boolean {
-        val dto = ZikrRewardDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            text = body.text,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
+    fun createZikrReward(body: ZikrRewardDtoRequest): Boolean =
+        zikrRewardRepository.createZikrReward(
+            body.toDto().toDomain()
         )
-        return zikrRewardRepository.createZikrReward(dto.toDomain())
-    }
 
-    fun updateZikrReward(body: ZikrRewardDtoRequest): Boolean {
-        val dto = ZikrRewardDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            text = body.text,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
+    fun updateZikrReward(body: ZikrRewardDtoRequest): Boolean =
+        zikrRewardRepository.updateZikrReward(
+            body.toDto().toDomain()
         )
-        return zikrRewardRepository.updateZikrReward(dto.toDomain())
-    }
 
-    fun deleteZikrReward(id: String) = zikrRewardRepository.deleteZikrReward(id)
+    fun deleteZikrReward(id: String) =
+        zikrRewardRepository.deleteZikrReward(id)
 
     fun getUpdatedZikrRewards(updatedAt: Instant) =
         zikrRewardRepository.getUpdatedZikrRewards(updatedAt)
+
+
+    // ------------------------------------------------------------
+    // 🔹 PRIVATE MAPPER: Request → DTO
+    // ------------------------------------------------------------
+    private fun ZikrRewardDtoRequest.toDto() = ZikrRewardDto(
+        id = this.id ?: generateUUID(),
+        zikrId = this.zikrId,
+        text = this.text,
+        createdAt = this.createdAt ?: Instant.now(),
+        updatedAt = this.updatedAt ?: Instant.now(),
+        isDeleted = this.isDeleted,
+        deletedAt = this.deletedAt
+    )
 }

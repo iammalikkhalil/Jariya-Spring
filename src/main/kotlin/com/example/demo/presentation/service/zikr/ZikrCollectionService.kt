@@ -12,42 +12,37 @@ class ZikrCollectionService(
     private val zikrCollectionRepository: ZikrCollectionRepository
 ) {
 
-    fun getAllZikrCollections() = zikrCollectionRepository.getAllZikrCollections()
+    fun getAllZikrCollections() =
+        zikrCollectionRepository.getAllZikrCollections()
 
-    fun getZikrCollectionById(id: String) = zikrCollectionRepository.getZikrCollectionById(id)
+    fun getZikrCollectionById(id: String) =
+        zikrCollectionRepository.getZikrCollectionById(id)
 
-    fun createZikrCollection(body: ZikrCollectionDtoRequest): Boolean {
-        val dto = ZikrCollectionDto(
-            id = body.id,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt,
-            text = body.text,
-            isFeatured = body.isFeatured,
-            description = body.description,
-            orderIndex = body.orderIndex
-        )
-        return zikrCollectionRepository.createZikrCollection(dto.toDomain())
-    }
+    fun createZikrCollection(body: ZikrCollectionDtoRequest): Boolean =
+        zikrCollectionRepository.createZikrCollection(body.toDto().toDomain())
 
-    fun updateZikrCollection(body: ZikrCollectionDtoRequest): Boolean {
-        val dto = ZikrCollectionDto(
-            id = body.id,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt,
-            text = body.text,
-            isFeatured = body.isFeatured,
-            description = body.description,
-            orderIndex = body.orderIndex
-        )
-        return zikrCollectionRepository.updateZikrCollection(dto.toDomain())
-    }
+    fun updateZikrCollection(body: ZikrCollectionDtoRequest): Boolean =
+        zikrCollectionRepository.updateZikrCollection(body.toDto().toDomain())
 
-    fun deleteZikrCollection(id: String) = zikrCollectionRepository.deleteZikrCollection(id)
+    fun deleteZikrCollection(id: String) =
+        zikrCollectionRepository.deleteZikrCollection(id)
 
     fun getUpdatedZikrCollections(updatedAt: Instant) =
         zikrCollectionRepository.getUpdatedZikrCollections(updatedAt)
+
+
+    // ------------------------------------------------------------
+    // 🔹 Private mapper: Request → DTO (clean & centralised)
+    // ------------------------------------------------------------
+    private fun ZikrCollectionDtoRequest.toDto() = ZikrCollectionDto(
+        id = this.id,
+        text = this.text,
+        isFeatured = this.isFeatured,
+        description = this.description,
+        orderIndex = this.orderIndex,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+        isDeleted = this.isDeleted,
+        deletedAt = this.deletedAt
+    )
 }

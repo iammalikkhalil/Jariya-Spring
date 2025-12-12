@@ -1,6 +1,6 @@
 package com.example.demo.presentation.service.progress
 
-import com.example.demo.domain.enums.SourceType
+import com.example.demo.domain.enums.PointsSourceType
 import com.example.demo.domain.model.progress.toDto
 import com.example.demo.domain.repository.auth.UserRepository
 import com.example.demo.domain.repository.progress.ZikrPointRepository
@@ -117,7 +117,7 @@ class ZikrProgressService(
                     zikrId = progress.zikrId,
                     userId = progress.userId,
                     points = basePoint,
-                    sourceType = SourceType.ZIKR,
+                    pointsSourceType = PointsSourceType.ZIKR,
                     sourceUser = progress.userId,
                     createdAt = Instant.now(),
                     updatedAt = Instant.now(),
@@ -159,7 +159,7 @@ class ZikrProgressService(
                 zikrId = zikrId,
                 userId = parentId,
                 points = basePoint,
-                sourceType = SourceType.REFERRAL,
+                pointsSourceType = PointsSourceType.REFERRAL,
                 sourceUser = sourceUserId,
                 createdAt = Instant.now(),
                 updatedAt = Instant.now(),

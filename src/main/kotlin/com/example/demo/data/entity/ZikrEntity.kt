@@ -5,59 +5,67 @@ import java.time.Instant
 import java.util.*
 
 @Entity
-@Table(name = "zikrs")
-data class ZikrEntity(
+@Table(
+    name = "zikrs",
+    indexes = [
+        Index(name = "idx_zikr_deleted", columnList = "is_deleted"),
+        Index(name = "idx_zikr_verified", columnList = "is_verified"),
+        Index(name = "idx_zikr_quran", columnList = "is_quran"),
+        Index(name = "idx_zikr_hadith", columnList = "is_hadith"),
+        Index(name = "idx_zikr_char_count", columnList = "char_count")
+    ]
+)
+class ZikrEntity(
 
     @Id
-//    @GeneratedValue
     @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    var id: UUID,
 
     @Column(name = "text_ar", nullable = false, columnDefinition = "TEXT")
-    val textAr: String,
+    var textAr: String,
 
     @Column(name = "title_en", columnDefinition = "TEXT")
-    val titleEn: String? = null,
+    var titleEn: String? = null,
 
     @Column(name = "title_ur", columnDefinition = "TEXT")
-    val titleUr: String? = null,
+    var titleUr: String? = null,
 
     @Column(name = "transliteration", columnDefinition = "TEXT")
-    val transliteration: String? = null,
+    var transliteration: String? = null,
 
     @Column(name = "quantity_notes", columnDefinition = "TEXT")
-    val quantityNotes: String? = null,
+    var quantityNotes: String? = null,
 
     @Column(name = "source_notes", columnDefinition = "TEXT")
-    val sourceNotes: String? = null,
+    var sourceNotes: String? = null,
 
     @Column(name = "is_quran", nullable = false)
-    val isQuran: Boolean = false,
+    var isQuran: Boolean = false,
 
     @Column(name = "is_hadith", nullable = false)
-    val isHadith: Boolean = false,
+    var isHadith: Boolean = false,
 
     @Column(name = "is_verified", nullable = false)
-    val isVerified: Boolean = false,
+    var isVerified: Boolean = false,
 
     @Column(name = "verified_by_name", columnDefinition = "TEXT")
-    val verifiedByName: String? = null,
+    var verifiedByName: String? = null,
 
     @Column(name = "char_count", nullable = false)
-    val charCount: Int,
+    var charCount: Int,
 
     @Column(name = "verified_date")
-    val verifiedDate: Instant? = null,
+    var verifiedDate: Instant? = null,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

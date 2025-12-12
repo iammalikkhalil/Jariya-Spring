@@ -2,39 +2,44 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
-@Table(name = "referral")
-data class ReferralEntity(
+@Table(
+    name = "referral",
+    indexes = [
+        Index(name = "idx_referral_referrer", columnList = "referrer_id"),
+        Index(name = "idx_referral_referred", columnList = "referred_id"),
+        Index(name = "idx_referral_deleted", columnList = "is_deleted"),
+        Index(name = "idx_referral_code_used", columnList = "referral_code_used")
+    ]
+)
+class ReferralEntity(
 
     @Id
-//    @GeneratedValue
-    @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    @Column(name = "id", nullable = false, updatable = false)
+    var id: UUID,
 
-    // FK → users.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "referrer_id", referencedColumnName = "id", nullable = false)
-    val referrer: UserEntity,
+    var referrer: UserEntity,
 
-    // FK → users.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "referred_id", referencedColumnName = "id", nullable = false)
-    val referred: UserEntity,
+    var referred: UserEntity,
 
     @Column(name = "referral_code_used", nullable = false, length = 200)
-    val referralCodeUsed: String,
+    var referralCodeUsed: String,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

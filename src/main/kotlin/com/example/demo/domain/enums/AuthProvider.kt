@@ -1,6 +1,5 @@
 package com.example.demo.domain.enums
 
-
 enum class AuthProvider(val value: String) {
     USERNAME_PASSWORD("username_password"),
     GOOGLE("google"),
@@ -14,6 +13,6 @@ enum class AuthProvider(val value: String) {
 
     companion object {
         fun fromValue(value: String): AuthProvider =
-            entries.find { it.value == value } ?: OTHER
+            entries.find { it.value == value.trim().lowercase() } ?: OTHER
     }
 }

@@ -3,26 +3,28 @@ package com.example.demo.domain.model.progress
 import com.example.demo.presentation.dto.progress.ZikrProgressDto
 import java.time.Instant
 
+data class ZikrProgressModel(
 
-data class ZikrProgressModel (
     val id: String,
+
     val userId: String,
     val zikrId: String,
     val deviceId: String?,
     val sessionId: String?,
     val source: String?,
+
     val count: Int,
     val processedLevels: Int?,
+
     val isStarted: Boolean,
     val isCompleted: Boolean,
-    val isDeleted: Boolean = false,
+    val isDeleted: Boolean,
+
     val createdAt: Instant,
     val updatedAt: Instant,
-    val deletedAt: Instant? = null,
-    val syncedAt: Instant? = null,
+    val deletedAt: Instant?,
+    val syncedAt: Instant?
 )
-
-
 
 fun ZikrProgressModel.toDto()  = ZikrProgressDto(
     id = this.id,

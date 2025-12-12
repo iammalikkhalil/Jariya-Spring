@@ -2,60 +2,66 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
-@Table(name = "zikr_progress")
-data class ZikrProgressEntity(
+@Table(
+    name = "zikr_progress",
+    indexes = [
+        Index(name = "idx_progress_user", columnList = "user_id"),
+        Index(name = "idx_progress_zikr", columnList = "zikr_id"),
+        Index(name = "idx_progress_deleted", columnList = "is_deleted"),
+        Index(name = "idx_progress_started", columnList = "is_started"),
+        Index(name = "idx_progress_completed", columnList = "is_completed")
+    ]
+)
+class ZikrProgressEntity(
 
     @Id
-//    @GeneratedValue
-    @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    @Column(name = "id", nullable = false, updatable = false)
+    var id: UUID,
 
-    // FK → user.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    val user: UserEntity,
+    var user: UserEntity,
 
-    // FK → zikr.id (nullable)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")
-    val zikr: ZikrEntity? = null,
+    var zikr: ZikrEntity? = null,
 
     @Column(name = "device_id")
-    val deviceId: UUID? = null,
+    var deviceId: UUID? = null,
 
     @Column(name = "session_id")
-    val sessionId: UUID? = null,
+    var sessionId: UUID? = null,
 
     @Column(name = "source", columnDefinition = "TEXT")
-    val source: String? = null,
+    var source: String? = null,
 
     @Column(name = "count", nullable = false)
-    val count: Int,
+    var count: Int,
 
     @Column(name = "processed_levels")
-    val processedLevels: Int? = null,
+    var processedLevels: Int? = null,
 
     @Column(name = "is_started", nullable = false)
-    val isStarted: Boolean = false,
+    var isStarted: Boolean = false,
 
     @Column(name = "is_completed", nullable = false)
-    val isCompleted: Boolean = false,
+    var isCompleted: Boolean = false,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null,
+    var deletedAt: Instant? = null,
 
     @Column(name = "synced_at")
-    val syncedAt: Instant? = null
+    var syncedAt: Instant? = null
 )

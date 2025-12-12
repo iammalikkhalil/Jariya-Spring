@@ -12,42 +12,37 @@ class ZikrAudioService(
     private val zikrAudioRepository: ZikrAudioRepository
 ) {
 
-    fun getAllZikrAudios() = zikrAudioRepository.getAllZikrAudios()
+    fun getAllZikrAudios() =
+        zikrAudioRepository.getAllZikrAudios()
 
-    fun getZikrAudioById(id: String) = zikrAudioRepository.getZikrAudioById(id)
+    fun getZikrAudioById(id: String) =
+        zikrAudioRepository.getZikrAudioById(id)
 
-    fun createZikrAudio(body: ZikrAudioDtoRequest): Boolean {
-        val dto = ZikrAudioDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            audioUrl = body.audioUrl,
-            languageCode = body.languageCode,
-            duration = body.duration,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
-        )
-        return zikrAudioRepository.createZikrAudio(dto.toDomain())
-    }
+    fun createZikrAudio(body: ZikrAudioDtoRequest): Boolean =
+        zikrAudioRepository.createZikrAudio(body.toDto().toDomain())
 
-    fun updateZikrAudio(body: ZikrAudioDtoRequest): Boolean {
-        val dto = ZikrAudioDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            audioUrl = body.audioUrl,
-            languageCode = body.languageCode,
-            duration = body.duration,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
-        )
-        return zikrAudioRepository.updateZikrAudio(dto.toDomain())
-    }
+    fun updateZikrAudio(body: ZikrAudioDtoRequest): Boolean =
+        zikrAudioRepository.updateZikrAudio(body.toDto().toDomain())
 
-    fun deleteZikrAudio(id: String) = zikrAudioRepository.deleteZikrAudio(id)
+    fun deleteZikrAudio(id: String) =
+        zikrAudioRepository.deleteZikrAudio(id)
 
     fun getUpdatedZikrAudios(updatedAt: Instant) =
         zikrAudioRepository.getUpdatedZikrAudios(updatedAt)
+
+
+    // ------------------------------------------------------------
+    // 🔹 Private extension to map Request → DTO cleanly
+    // ------------------------------------------------------------
+    private fun ZikrAudioDtoRequest.toDto() = ZikrAudioDto(
+        id = this.id,
+        zikrId = this.zikrId,
+        audioUrl = this.audioUrl,
+        languageCode = this.languageCode,
+        duration = this.duration,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+        isDeleted = this.isDeleted,
+        deletedAt = this.deletedAt
+    )
 }

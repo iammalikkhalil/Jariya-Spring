@@ -3,7 +3,7 @@ package com.example.demo.data.mapper.zikr
 import com.example.demo.data.entity.ZikrEntity
 import com.example.demo.data.entity.ZikrTranslationEntity
 import com.example.demo.domain.model.zikr.ZikrTranslationModel
-import java.util.*
+import java.util.UUID
 
 fun ZikrTranslationEntity.toModel(): ZikrTranslationModel =
     ZikrTranslationModel(

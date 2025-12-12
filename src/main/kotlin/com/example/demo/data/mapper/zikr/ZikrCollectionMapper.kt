@@ -2,7 +2,7 @@ package com.example.demo.data.mapper.zikr
 
 import com.example.demo.data.entity.ZikrCollectionEntity
 import com.example.demo.domain.model.zikr.ZikrCollectionModel
-import java.util.*
+import java.util.UUID
 
 fun ZikrCollectionEntity.toModel(): ZikrCollectionModel =
     ZikrCollectionModel(

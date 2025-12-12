@@ -1,7 +1,7 @@
 package com.example.demo.data.mapper.progress
 
 import com.example.demo.data.entity.*
-import com.example.demo.domain.enums.SourceType
+import com.example.demo.domain.enums.PointsSourceType
 import com.example.demo.domain.model.progress.ZikrPointModel
 import java.util.*
 
@@ -13,7 +13,7 @@ fun ZikrPointEntity.toModel(): ZikrPointModel =
         progressId = progress?.id?.toString(),
         level = level,
         points = points,
-        sourceType = SourceType.valueOf(sourceType),
+        pointsSourceType = PointsSourceType.valueOf(sourceType),
         sourceUser = sourceUser.id.toString(),
         isDeleted = isDeleted,
         createdAt = createdAt,
@@ -34,7 +34,7 @@ fun ZikrPointModel.toEntity(
         progress = progressEntity,
         level = level,
         points = points,
-        sourceType = sourceType.name,
+        sourceType = pointsSourceType.name,
         sourceUser = sourceUserEntity,
         isDeleted = isDeleted,
         createdAt = createdAt,

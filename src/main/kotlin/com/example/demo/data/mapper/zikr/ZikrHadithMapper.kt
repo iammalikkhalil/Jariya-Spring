@@ -3,7 +3,7 @@ package com.example.demo.data.mapper.zikr
 import com.example.demo.data.entity.ZikrEntity
 import com.example.demo.data.entity.ZikrHadithEntity
 import com.example.demo.domain.model.zikr.ZikrHadithModel
-import java.util.*
+import java.util.UUID
 
 fun ZikrHadithEntity.toModel(): ZikrHadithModel =
     ZikrHadithModel(
@@ -30,4 +30,3 @@ fun ZikrHadithModel.toEntity(
         isDeleted = isDeleted,
         deletedAt = deletedAt
     )
-

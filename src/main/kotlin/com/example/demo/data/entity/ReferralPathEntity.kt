@@ -1,36 +1,30 @@
 package com.example.demo.data.entity
 
 import jakarta.persistence.*
-import java.io.Serializable
-import java.util.*
-
 
 @Entity
-@Table(name = "referral_paths")
-data class ReferralPathEntity(
+@Table(
+    name = "referral_paths",
+    indexes = [
+        Index(name = "idx_referralpath_ancestor", columnList = "ancestor"),
+        Index(name = "idx_referralpath_descendant", columnList = "descendant")
+    ]
+)
+class ReferralPathEntity(
 
     @EmbeddedId
-    val id: ReferralPathId,
+    var id: ReferralPathId,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("ancestor")
     @JoinColumn(name = "ancestor", referencedColumnName = "id", nullable = false)
-    val ancestor: UserEntity,
+    var ancestor: UserEntity,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @MapsId("descendant")
     @JoinColumn(name = "descendant", referencedColumnName = "id", nullable = false)
-    val descendant: UserEntity,
+    var descendant: UserEntity,
 
     @Column(name = "level", nullable = false)
-    val level: Int
+    var level: Int
 )
-
-@Embeddable
-data class ReferralPathId(
-    @Column(name = "ancestor")
-    val ancestor: UUID = UUID(0, 0),
-
-    @Column(name = "descendant")
-    val descendant: UUID = UUID(0, 0)
-) : Serializable

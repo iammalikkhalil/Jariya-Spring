@@ -2,37 +2,42 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
-@Table(name = "zikr_hadith_translations")
-data class ZikrHadithTranslationEntity(
+@Table(
+    name = "zikr_hadith_translations",
+    indexes = [
+        Index(name = "idx_hadith_translation_hadith", columnList = "hadith_id"),
+        Index(name = "idx_hadith_translation_deleted", columnList = "is_deleted"),
+        Index(name = "idx_hadith_translation_lang", columnList = "language_code")
+    ]
+)
+class ZikrHadithTranslationEntity(
 
     @Id
-//    @GeneratedValue
-    @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    @Column(name = "id", nullable = false, updatable = false)
+    var id: UUID,
 
-    // FK → zikr_hadiths.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "hadith_id", referencedColumnName = "id", nullable = false)
-    val hadith: ZikrHadithEntity,
+    var hadith: ZikrHadithEntity,
 
     @Column(name = "translation", nullable = false, columnDefinition = "TEXT")
-    val translation: String,
+    var translation: String,
 
-    @Column(name = "language_code", nullable = false, columnDefinition = "TEXT")
-    val languageCode: String,
+    @Column(name = "language_code", nullable = false, length = 10)
+    var languageCode: String,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

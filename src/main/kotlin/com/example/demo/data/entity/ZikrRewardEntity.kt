@@ -2,34 +2,38 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
-@Table(name = "zikr_rewards")
-data class ZikrRewardEntity(
+@Table(
+    name = "zikr_rewards",
+    indexes = [
+        Index(name = "idx_reward_zikr", columnList = "zikr_id"),
+        Index(name = "idx_reward_deleted", columnList = "is_deleted")
+    ]
+)
+class ZikrRewardEntity(
 
     @Id
-//    @GeneratedValue
-    @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    @Column(name = "id", nullable = false, updatable = false)
+    var id: UUID,
 
-    // FK → zikr.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id", nullable = false)
-    val zikr: ZikrEntity,
+    var zikr: ZikrEntity,
 
     @Column(name = "text", nullable = false, columnDefinition = "TEXT")
-    val text: String,
+    var text: String,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

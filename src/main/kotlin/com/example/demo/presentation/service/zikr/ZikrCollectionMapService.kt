@@ -12,44 +12,38 @@ class ZikrCollectionMapService(
     private val zikrCollectionMapRepository: ZikrCollectionMapRepository
 ) {
 
-    fun getAllZikrCollectionMaps() = zikrCollectionMapRepository.getAllZikrCollectionMaps()
+    fun getAllZikrCollectionMaps() =
+        zikrCollectionMapRepository.getAllZikrCollectionMaps()
 
-    fun getZikrCollectionMapById(id: String) = zikrCollectionMapRepository.getZikrCollectionMapById(id)
+    fun getZikrCollectionMapById(id: String) =
+        zikrCollectionMapRepository.getZikrCollectionMapById(id)
 
-    fun createZikrCollectionMap(body: ZikrCollectionMapDtoRequest): Boolean {
-        val dto = ZikrCollectionMapDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            collectionId = body.collectionId,
-            countType = body.countType,
-            countValue = body.countValue,
-            orderIndex = body.orderIndex,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
-        )
-        return zikrCollectionMapRepository.createZikrCollectionMap(dto.toDomain())
-    }
+    fun createZikrCollectionMap(body: ZikrCollectionMapDtoRequest): Boolean =
+        zikrCollectionMapRepository.createZikrCollectionMap(body.toDto().toDomain())
 
-    fun updateZikrCollectionMap(body: ZikrCollectionMapDtoRequest): Boolean {
-        val dto = ZikrCollectionMapDto(
-            id = body.id,
-            zikrId = body.zikrId,
-            collectionId = body.collectionId,
-            countType = body.countType,
-            countValue = body.countValue,
-            orderIndex = body.orderIndex,
-            createdAt = body.createdAt,
-            updatedAt = body.updatedAt,
-            isDeleted = body.isDeleted,
-            deletedAt = body.deletedAt
-        )
-        return zikrCollectionMapRepository.updateZikrCollectionMap(dto.toDomain())
-    }
+    fun updateZikrCollectionMap(body: ZikrCollectionMapDtoRequest): Boolean =
+        zikrCollectionMapRepository.updateZikrCollectionMap(body.toDto().toDomain())
 
-    fun deleteZikrCollectionMap(id: String) = zikrCollectionMapRepository.deleteZikrCollectionMap(id)
+    fun deleteZikrCollectionMap(id: String) =
+        zikrCollectionMapRepository.deleteZikrCollectionMap(id)
 
     fun getUpdatedZikrCollectionMaps(updatedAt: Instant) =
         zikrCollectionMapRepository.getUpdatedZikrCollectionMaps(updatedAt)
+
+
+    // ------------------------------------------------------------
+    // 🔹 Private mapper: Request → DTO
+    // ------------------------------------------------------------
+    private fun ZikrCollectionMapDtoRequest.toDto() = ZikrCollectionMapDto(
+        id = this.id,
+        zikrId = this.zikrId,
+        collectionId = this.collectionId,
+        countType = this.countType,
+        countValue = this.countValue,
+        orderIndex = this.orderIndex,
+        createdAt = this.createdAt,
+        updatedAt = this.updatedAt,
+        isDeleted = this.isDeleted,
+        deletedAt = this.deletedAt
+    )
 }

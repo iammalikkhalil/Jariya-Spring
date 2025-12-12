@@ -4,7 +4,7 @@ import com.example.demo.data.entity.ZikrEntity
 import com.example.demo.data.entity.ZikrTagEntity
 import com.example.demo.data.entity.ZikrTagMapEntity
 import com.example.demo.domain.model.zikr.ZikrTagMapModel
-import java.util.*
+import java.util.UUID
 
 fun ZikrTagMapEntity.toModel(): ZikrTagMapModel =
     ZikrTagMapModel(
@@ -30,4 +30,3 @@ fun ZikrTagMapModel.toEntity(
         isDeleted = isDeleted,
         deletedAt = deletedAt
     )
-

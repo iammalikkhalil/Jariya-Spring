@@ -2,45 +2,50 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
-@Table(name = "zikr_collection_map")
-data class ZikrCollectionMapEntity(
+@Table(
+    name = "zikr_collection_map",
+    indexes = [
+        Index(name = "idx_zcm_zikr", columnList = "zikr_id"),
+        Index(name = "idx_zcm_collection", columnList = "collection_id"),
+        Index(name = "idx_zcm_order", columnList = "order_index"),
+        Index(name = "idx_zcm_deleted", columnList = "is_deleted")
+    ]
+)
+class ZikrCollectionMapEntity(
 
     @Id
-//    @GeneratedValue
-    @Column(name = "id", nullable = false, unique = true)
-    val id: UUID = UUID.randomUUID(),
+    @Column(name = "id", nullable = false, unique = true, updatable = false)
+    var id: UUID,
 
-    // FK → zikr.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id", nullable = false)
-    val zikr: ZikrEntity,
+    var zikr: ZikrEntity,
 
-    // FK → collection.id
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "collection_id", referencedColumnName = "id", nullable = false)
-    val collection: ZikrCollectionEntity,
+    var collection: ZikrCollectionEntity,
 
-    @Column(name = "count_type", nullable = false, columnDefinition = "TEXT")
-    val countType: String, // "Up" or "Down"
+    @Column(name = "count_type", nullable = false, length = 10)
+    var countType: String, // should become enum in future
 
     @Column(name = "count_value", nullable = false)
-    val countValue: Int, // e.g., 33
+    var countValue: Int,
 
     @Column(name = "order_index", nullable = false)
-    val orderIndex: Int, // e.g., 1, 2, 3, 4
+    var orderIndex: Int,
 
     @Column(name = "created_at", nullable = false)
-    val createdAt: Instant = Instant.now(),
+    var createdAt: Instant,
 
     @Column(name = "updated_at", nullable = false)
-    val updatedAt: Instant = Instant.now(),
+    var updatedAt: Instant,
 
     @Column(name = "is_deleted", nullable = false)
-    val isDeleted: Boolean = false,
+    var isDeleted: Boolean = false,
 
     @Column(name = "deleted_at")
-    val deletedAt: Instant? = null
+    var deletedAt: Instant? = null
 )

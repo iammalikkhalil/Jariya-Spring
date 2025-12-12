@@ -1,9 +1,11 @@
 package com.example.demo.presentation.controller.zikr
 
 import com.example.demo.presentation.dto.ApiResponse
+import com.example.demo.presentation.dto.zikr.IdRequestDto
 import com.example.demo.presentation.dto.zikr.TimeDto
 import com.example.demo.presentation.dto.zikr.ZikrHadithTranslationDtoRequest
 import com.example.demo.presentation.service.zikr.ZikrHadithTranslationService
+import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.*
@@ -18,15 +20,30 @@ class ZikrHadithTranslationController(
 
     @GetMapping("/getAll")
     fun getAllZikrHadithTranslations(): ResponseEntity<ApiResponse<Any>> {
-        val translations = zikrHadithTranslationService.getAllZikrHadithTranslations()
-        return ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Fetched all ZikrHadithTranslation records", translations))
+        val result = zikrHadithTranslationService.getAllZikrHadithTranslations()
+        return ResponseEntity.ok(
+            ApiResponse.success(
+                HttpStatus.OK,
+                "Fetched all ZikrHadithTranslation records",
+                result
+            )
+        )
     }
 
     @PostMapping("/getById")
-    fun getZikrHadithTranslationById(@RequestBody body: ZikrHadithTranslationDtoRequest): ResponseEntity<ApiResponse<Any>> {
-        val translation = zikrHadithTranslationService.getZikrHadithTranslationById(body.id)
-        return if (translation != null) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "ZikrHadithTranslation found", translation))
+    fun getZikrHadithTranslationById(@Valid @RequestBody body: IdRequestDto)
+            : ResponseEntity<ApiResponse<Any>> {
+
+        val record = zikrHadithTranslationService.getZikrHadithTranslationById(body.id)
+
+        return if (record != null) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "ZikrHadithTranslation found",
+                    record
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(ApiResponse.error(HttpStatus.NOT_FOUND, "ZikrHadithTranslation not found"))
@@ -34,48 +51,104 @@ class ZikrHadithTranslationController(
     }
 
     @PostMapping("/add")
-    fun createZikrHadithTranslation(@RequestBody body: ZikrHadithTranslationDtoRequest): ResponseEntity<ApiResponse<Any>> {
-        val result = zikrHadithTranslationService.createZikrHadithTranslation(body)
-        return if (result) {
+    fun createZikrHadithTranslation(@Valid @RequestBody body: ZikrHadithTranslationDtoRequest)
+            : ResponseEntity<ApiResponse<Any>> {
+
+        val created = zikrHadithTranslationService.createZikrHadithTranslation(body)
+
+        return if (created) {
             ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success(HttpStatus.CREATED, "ZikrHadithTranslation created successfully", body))
+                .body(
+                    ApiResponse.success(
+                        HttpStatus.CREATED,
+                        "ZikrHadithTranslation created successfully",
+                        null
+                    )
+                )
         } else {
             ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(ApiResponse.error(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create ZikrHadithTranslation"))
+                .body(
+                    ApiResponse.error(
+                        HttpStatus.INTERNAL_SERVER_ERROR,
+                        "Failed to create ZikrHadithTranslation"
+                    )
+                )
         }
     }
 
     @PostMapping("/update")
-    fun updateZikrHadithTranslation(@RequestBody body: ZikrHadithTranslationDtoRequest): ResponseEntity<ApiResponse<Any>> {
-        val success = zikrHadithTranslationService.updateZikrHadithTranslation(body)
-        return if (success) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "ZikrHadithTranslation updated successfully", null))
+    fun updateZikrHadithTranslation(@Valid @RequestBody body: ZikrHadithTranslationDtoRequest)
+            : ResponseEntity<ApiResponse<Any>> {
+
+        val updated = zikrHadithTranslationService.updateZikrHadithTranslation(body)
+
+        return if (updated) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "ZikrHadithTranslation updated successfully",
+                    null
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(HttpStatus.NOT_FOUND, "ZikrHadithTranslation not found or update failed"))
+                .body(
+                    ApiResponse.error(
+                        HttpStatus.NOT_FOUND,
+                        "ZikrHadithTranslation not found or update failed"
+                    )
+                )
         }
     }
 
     @PostMapping("/deleteById")
-    fun deleteZikrHadithTranslation(@RequestBody body: ZikrHadithTranslationDtoRequest): ResponseEntity<ApiResponse<Any>> {
-        val success = zikrHadithTranslationService.deleteZikrHadithTranslation(body.id)
-        return if (success) {
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "ZikrHadithTranslation deleted successfully", null))
+    fun deleteZikrHadithTranslation(@Valid @RequestBody body: IdRequestDto)
+            : ResponseEntity<ApiResponse<Any>> {
+
+        val deleted = zikrHadithTranslationService.deleteZikrHadithTranslation(body.id)
+
+        return if (deleted) {
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "ZikrHadithTranslation deleted successfully",
+                    null
+                )
+            )
         } else {
             ResponseEntity.status(HttpStatus.NOT_FOUND)
-                .body(ApiResponse.error(HttpStatus.NOT_FOUND, "ZikrHadithTranslation not found or delete failed"))
+                .body(
+                    ApiResponse.error(
+                        HttpStatus.NOT_FOUND,
+                        "ZikrHadithTranslation not found or delete failed"
+                    )
+                )
         }
     }
 
     @PostMapping("/getUpdated")
-    fun getUpdated(@RequestBody body: TimeDto): ResponseEntity<ApiResponse<Any>> {
+    fun getUpdated(@Valid @RequestBody body: TimeDto): ResponseEntity<ApiResponse<Any>> {
         return try {
+
             val updatedAt = Instant.parse(body.updatedAt)
-            val zikrs = zikrHadithTranslationService.getUpdatedZikrHadithTranslations(updatedAt)
-            ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Zikr found", zikrs))
+            val result = zikrHadithTranslationService.getUpdatedZikrHadithTranslations(updatedAt)
+
+            ResponseEntity.ok(
+                ApiResponse.success(
+                    HttpStatus.OK,
+                    "Zikr found",
+                    result
+                )
+            )
+
         } catch (e: DateTimeParseException) {
             ResponseEntity.badRequest()
-                .body(ApiResponse.error(HttpStatus.BAD_REQUEST, "Invalid datetime format. Use ISO-8601 like 2025-09-30T12:34:56Z"))
+                .body(
+                    ApiResponse.error(
+                        HttpStatus.BAD_REQUEST,
+                        "Invalid datetime format. Use ISO-8601 like 2025-09-30T12:34:56Z"
+                    )
+                )
         }
     }
 }

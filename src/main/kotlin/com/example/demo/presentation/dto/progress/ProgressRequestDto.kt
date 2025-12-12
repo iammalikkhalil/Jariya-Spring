@@ -1,7 +1,7 @@
 package com.example.demo.presentation.dto.progress
 
 
-import com.example.demo.domain.enums.SourceType
+import com.example.demo.domain.enums.PointsSourceType
 import com.example.demo.infrastructure.utils.generateUUID
 import java.time.Instant
 import java.time.Instant.now
@@ -34,7 +34,7 @@ data class ZikrPointRequestDto (
     val progressId: String = generateUUID(),
     val level: Int = 0,
     val points: Int = 100,
-    val sourceType: SourceType = SourceType.ZIKR,
+    val pointsSourceType: PointsSourceType = PointsSourceType.ZIKR,
     val sourceUser: String = generateUUID(),
     val isDeleted: Boolean = false,
     val createdAt: Instant = now(),

@@ -1,21 +1,27 @@
 package com.example.demo.presentation.dto.zikr
 
+import com.example.demo.domain.model.zikr.ZikrHadithModel
+import jakarta.validation.constraints.NotBlank
 import java.time.Instant
 
-import com.example.demo.domain.model.zikr.ZikrHadithModel
+data class ZikrHadithDto(
 
-
-data class ZikrHadithDto (
     val id: String,
 
+    @field:NotBlank(message = "zikrId is required")
     val zikrId: String,
+
+    @field:NotBlank(message = "textAr is required")
     val textAr: String,
+
+    @field:NotBlank(message = "reference is required")
     val reference: String,
 
     val createdAt: Instant,
     val updatedAt: Instant,
+
     val isDeleted: Boolean,
-    val deletedAt: Instant?= null
+    val deletedAt: Instant? = null
 )
 
 fun ZikrHadithDto.toDomain() = ZikrHadithModel(

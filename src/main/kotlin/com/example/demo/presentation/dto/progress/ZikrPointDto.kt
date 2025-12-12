@@ -2,7 +2,7 @@ package com.example.demo.presentation.dto.progress
 
 import java.time.Instant
 
-import com.example.demo.domain.enums.SourceType
+import com.example.demo.domain.enums.PointsSourceType
 import com.example.demo.domain.model.progress.ZikrPointModel
 
 
@@ -14,7 +14,7 @@ data class ZikrPointDto (
     val zikrId: String?,
     val level: Int,
     val points: Int,
-    val sourceType: SourceType,
+    val pointsSourceType: PointsSourceType,
     val sourceUser: String,
     val isDeleted: Boolean = false,
     val createdAt: Instant,
@@ -32,7 +32,7 @@ fun ZikrPointDto.toDomain()  = ZikrPointModel(
     updatedAt = this.updatedAt,
     deletedAt = this.deletedAt,
     points = this.points,
-    sourceType = this.sourceType,
+    pointsSourceType = this.pointsSourceType,
     sourceUser = this.sourceUser,
     progressId = this.progressId,
     level = this.level,

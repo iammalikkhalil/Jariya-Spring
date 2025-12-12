@@ -12,6 +12,7 @@ import com.example.demo.infrastructure.utils.Log
 import com.example.demo.infrastructure.utils.generateUUID
 import com.example.demo.infrastructure.utils.toUUID
 import com.example.demo.presentation.dto.zikr.CsvZikrDto
+import org.springframework.data.jpa.domain.AbstractPersistable_.id
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
@@ -119,48 +120,60 @@ class ZikrRepositoryImpl(
                 zikrJpaRepository.save(zikrEntity)
                 updatedTables.add("zikr")
 
+
+
+//                val createdAt: Instant,
+//                val updatedAt: Instant,
+//                val isDeleted: Boolean,
+//                val deletedAt: Instant?
+
+
+
+
                 // Translations
                 row.translationUrdu?.let {
                     zikrTranslationRepository.createZikrTranslation(
-                        ZikrTranslationModel(zikrId = zikrIdString, translation = it, languageCode = "ur")
+                        ZikrTranslationModel(id = generateUUID(), zikrId = zikrIdString, translation = it, languageCode = "ur", createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null)
                     )
                     updatedTables.add("zikr_translation")
                 }
                 row.translationEnglish?.let {
                     zikrTranslationRepository.createZikrTranslation(
-                        ZikrTranslationModel(zikrId = zikrIdString, translation = it, languageCode = "en")
+                        ZikrTranslationModel(id = generateUUID(), zikrId = zikrIdString, translation = it, languageCode = "en", createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null)
+
                     )
                     updatedTables.add("zikr_translation")
                 }
 
                 // Rewards
                 row.rewards?.forEach {
-                    zikrRewardRepositoryImpl.createZikrReward(ZikrRewardModel(zikrId = zikrIdString, text = it))
+                    zikrRewardRepositoryImpl.createZikrReward(ZikrRewardModel(id = generateUUID(), zikrId = zikrIdString, text = it, createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null))
                 }
                 if (!row.rewards.isNullOrEmpty()) updatedTables.add("zikr_reward")
 
                 // Qualities
                 row.qualities?.forEach {
-                    zikrQualityRepositoryImpl.createZikrQuality(ZikrQualityModel(zikrId = zikrIdString, text = it))
+                    zikrQualityRepositoryImpl.createZikrQuality(ZikrQualityModel(id = generateUUID(), zikrId = zikrIdString, text = it, createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null))
                 }
                 if (!row.qualities.isNullOrEmpty()) updatedTables.add("zikr_quality")
 
                 // Hadith + translations
                 if (row.hadith != null && row.hadithReference != null) {
                     val hadithId = zikrHadithRepositoryImpl.createZikrHadith(
-                        ZikrHadithModel(zikrId = zikrIdString, textAr = row.hadith, reference = row.reference ?: "")
+                        ZikrHadithModel(id = generateUUID(), zikrId = zikrIdString, textAr = row.hadith, reference = row.reference ?: "", createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null)
                     )
                     updatedTables.add("zikr_hadith")
 
                     row.hadithTranslationUr?.let {
                         zikrHadithTranslationRepositoryImpl.createZikrHadithTranslation(
-                            ZikrHadithTranslationModel(hadithId = hadithId.toString(), translation = it, languageCode = "ur")
+
+                            ZikrHadithTranslationModel(id = generateUUID(), hadithId = hadithId.toString(), translation = it, languageCode = "ur", createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null)
                         )
                         updatedTables.add("zikr_hadith_translation")
                     }
                     row.hadithTranslationEn?.let {
                         zikrHadithTranslationRepositoryImpl.createZikrHadithTranslation(
-                            ZikrHadithTranslationModel(hadithId = hadithId.toString(), translation = it, languageCode = "en")
+                            ZikrHadithTranslationModel(id = generateUUID(), hadithId = hadithId.toString(), translation = it, languageCode = "en", createdAt = now, updatedAt = now, isDeleted = false, deletedAt = null)
                         )
                         updatedTables.add("zikr_hadith_translation")
                     }
