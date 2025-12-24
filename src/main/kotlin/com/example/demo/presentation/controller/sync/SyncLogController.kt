@@ -1,5 +1,6 @@
 package com.example.demo.presentation.controller.sync
 
+import com.example.demo.infrastructure.utils.Log
 import com.example.demo.presentation.dto.ApiResponse
 import com.example.demo.presentation.dto.zikr.TimeDto
 import com.example.demo.presentation.service.sync.SyncLogService
@@ -24,6 +25,7 @@ class SyncLogController(
     @PostMapping("/getUpdated")
     fun getUpdatedSyncLogs(@RequestBody body: TimeDto): ResponseEntity<ApiResponse<Any>> {
         return try {
+
             val updatedAt = Instant.parse(body.updatedAt)
             val logs = syncLogService.getUpdatedSyncLogs(updatedAt)
             ResponseEntity.ok(ApiResponse.success(HttpStatus.OK, "Fetched updated records", logs))

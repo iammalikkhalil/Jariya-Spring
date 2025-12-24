@@ -10,7 +10,8 @@ data class ZikrPointModel(
     val id: String,
 
     val userId: String,
-    val progressId: String?,
+    val progressType: String,
+    val progressId: String,
     val zikrId: String?,
 
     val level: Int,
@@ -37,5 +38,6 @@ fun ZikrPointModel.toDto()  = ZikrPointDto(
     pointsSourceType = this.pointsSourceType,
     sourceUser = this.sourceUser,
     progressId = this.progressId,
+    progressType = this.progressType,
     level = this.level,
 )

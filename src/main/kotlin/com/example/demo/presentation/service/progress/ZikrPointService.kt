@@ -20,6 +20,8 @@ class ZikrPointService(
             id = body.id,
             zikrId = body.zikrId,
             userId = body.userId,
+            progressId = body.progressId,
+            progressType = "zikr",
             points = body.points,
             pointsSourceType = body.pointsSourceType,
             sourceUser = body.sourceUser,
@@ -27,7 +29,6 @@ class ZikrPointService(
             updatedAt = body.updatedAt,
             isDeleted = body.isDeleted,
             deletedAt = body.deletedAt,
-            progressId = body.progressId,
             level = body.level,
         )
         return zikrPointRepository.createZikrPoint(dto.toDomain())
@@ -46,6 +47,7 @@ class ZikrPointService(
             isDeleted = body.isDeleted,
             deletedAt = body.deletedAt,
             progressId = body.progressId,
+            progressType = body.progressType,
             level = body.level,
         )
         return zikrPointRepository.updateZikrPoint(dto.toDomain())

@@ -10,7 +10,8 @@ fun ZikrPointEntity.toModel(): ZikrPointModel =
         id = id.toString(),
         userId = user.id.toString(),
         zikrId = zikr?.id?.toString(),
-        progressId = progress?.id?.toString(),
+        progressId = progressId,
+        progressType = progressType,
         level = level,
         points = points,
         pointsSourceType = PointsSourceType.valueOf(sourceType),
@@ -25,13 +26,13 @@ fun ZikrPointModel.toEntity(
     userEntity: UserEntity,
     sourceUserEntity: UserEntity,
     zikrEntity: ZikrEntity? = null,
-    progressEntity: ZikrProgressEntity? = null
 ): ZikrPointEntity =
     ZikrPointEntity(
         id = UUID.fromString(id),
         user = userEntity,
         zikr = zikrEntity,
-        progress = progressEntity,
+        progressId = progressId,
+        progressType = progressType,
         level = level,
         points = points,
         sourceType = pointsSourceType.name,

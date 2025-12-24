@@ -6,16 +6,17 @@ import java.util.UUID
 
 @Entity
 @Table(
-    name = "zikr_progress",
+    name = "goal_progress",
     indexes = [
-        Index(name = "idx_zikr_progress_user", columnList = "user_id"),
-        Index(name = "idx_zikr_progress_zikr", columnList = "zikr_id"),
-        Index(name = "idx_zikr_progress_deleted", columnList = "is_deleted"),
-        Index(name = "idx_zikr_progress_started", columnList = "is_started"),
-        Index(name = "idx_zikr_progress_completed", columnList = "is_completed")
+        Index(name = "idx_goal_progress_user", columnList = "user_id"),
+        Index(name = "idx_goal_progress_zikr", columnList = "zikr_id"),
+        Index(name = "idx_goal_progress_goal", columnList = "goal_id"),
+        Index(name = "idx_goal_progress_deleted", columnList = "is_deleted"),
+        Index(name = "idx_goal_progress_started", columnList = "is_started"),
+        Index(name = "idx_goal_progress_completed", columnList = "is_completed")
     ]
 )
-class ZikrProgressEntity(
+class GoalProgressEntity(
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -29,17 +30,26 @@ class ZikrProgressEntity(
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")
     var zikr: ZikrEntity? = null,
 
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "goal_id", referencedColumnName = "id")
+    var goal: ZikrGoalEntity? = null,
+
+
     @Column(name = "device_id")
     var deviceId: UUID? = null,
 
     @Column(name = "session_id")
     var sessionId: UUID? = null,
 
-    @Column(name = "source", columnDefinition = "TEXT")
-    var source: String? = null,
+    @Column(name = "type", columnDefinition = "TEXT")
+    var type: String? = null,
 
     @Column(name = "count", nullable = false)
     var count: Int,
+
+    @Column(name = "char_count", nullable = false)
+    var charCount: Int,
 
     @Column(name = "processed_levels")
     var processedLevels: Int? = null,

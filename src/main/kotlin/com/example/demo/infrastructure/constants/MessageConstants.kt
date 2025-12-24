@@ -83,6 +83,7 @@ object MessageConstants {
         const val ISSUE = "There was a problem processing your request."
         const val MISSING_FIELD = "Some required information is missing."
         const val FOREIGN_KEY_ERROR = "Invalid reference detected."
+
     }
 
     // -------------------------------------------------------------------------
@@ -113,4 +114,21 @@ object MessageConstants {
         const val FEATURE_UNAVAILABLE = "This feature is not available at the moment."
         const val MAINTENANCE_MODE = "The system is under maintenance. Please try again later."
     }
+
+
+    object Zikr {
+        const val NOT_FOUND = "Zikr not found or you don't have access to it."
+        const val ALREADY_DELETED = "This Zikr has been deleted and cannot be used."
+    }
+
+    object Goal {
+        const val NOT_FOUND = "Goal not found or you don't have access to it."
+        const val ALREADY_DELETED = "This Goal has been deleted and cannot be used."
+    }
+
+    object GoalMap {
+        const val ALREADY_EXISTS = "This Zikr is already assigned to the selected Goal."
+        const val CREATION_FAILED = "Failed to assign Zikr to Goal."
+    }
+
 }

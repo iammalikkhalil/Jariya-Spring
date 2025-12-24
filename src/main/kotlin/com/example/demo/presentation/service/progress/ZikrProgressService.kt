@@ -124,6 +124,7 @@ class ZikrProgressService(
                     isDeleted = false,
                     deletedAt = null,
                     progressId = progress.id,
+                    progressType = "zikr",
                     level = 0,
                 )
                 val inserted = zikrPointRepo.createZikrPoint(basePointDto.toDomain())
@@ -166,6 +167,7 @@ class ZikrProgressService(
                 isDeleted = false,
                 deletedAt = null,
                 progressId = progressId,
+                progressType = "zikr",
                 level = currentLevel
             )
             val inserted = zikrPointRepo.createZikrPoint(referralPoint.toDomain())

@@ -10,7 +10,8 @@ import com.example.demo.domain.model.progress.ZikrPointModel
 data class ZikrPointDto (
     val id: String,
     val userId: String,
-    val progressId: String?,
+    val progressType: String,
+    val progressId: String,
     val zikrId: String?,
     val level: Int,
     val points: Int,
@@ -36,4 +37,5 @@ fun ZikrPointDto.toDomain()  = ZikrPointModel(
     sourceUser = this.sourceUser,
     progressId = this.progressId,
     level = this.level,
+    progressType = this.progressType,
 )

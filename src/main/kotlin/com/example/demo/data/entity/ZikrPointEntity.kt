@@ -29,9 +29,11 @@ class ZikrPointEntity(
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")
     var zikr: ZikrEntity? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "progress_id", referencedColumnName = "id")
-    var progress: ZikrProgressEntity? = null,
+    @Column(name = "progress_type", nullable = false, length = 50)
+    var progressType: String,
+
+    @Column(name = "progress_id", nullable = false, length = 50)
+    var progressId: String,
 
     @Column(name = "level", nullable = false)
     var level: Int,

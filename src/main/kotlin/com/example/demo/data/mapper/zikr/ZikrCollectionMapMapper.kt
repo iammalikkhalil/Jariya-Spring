@@ -8,8 +8,6 @@ import com.example.demo.infrastructure.utils.Log
 import java.util.UUID
 
 fun ZikrCollectionMapEntity.toModel(): ZikrCollectionMapModel {
-    Log.info("🧩 Mapping: $id (zikr=${this.zikr.id}, collection=${this.collection.id})")
-
     return ZikrCollectionMapModel(
         id = id.toString(),
         zikrId = zikr.id.toString(),
@@ -28,8 +26,6 @@ fun ZikrCollectionMapModel.toEntity(
     zikrEntity: ZikrEntity,
     collectionEntity: ZikrCollectionEntity
 ): ZikrCollectionMapEntity {
-    Log.info("🧩 Mapping: $id (zikr=${zikrEntity.id}, collection=${collectionEntity.id})")
-
     return ZikrCollectionMapEntity(
         id = UUID.fromString(id),
         zikr = zikrEntity,

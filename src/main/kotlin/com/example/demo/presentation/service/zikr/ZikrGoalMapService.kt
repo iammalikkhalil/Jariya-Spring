@@ -19,6 +19,18 @@ class ZikrGoalMapService(
 
     fun createZikrGoalMap(body: ZikrGoalMapDto): Boolean {
         val model = body.toModel()
+
+
+        println("_____________________________________")
+        println("_____________________________________")
+        println("_____________________________________")
+        println("_____________________________________")
+        println("Created ZikrGoalMap: $model")
+        println("_____________________________________")
+        println("_____________________________________")
+        println("_____________________________________")
+        println("_____________________________________")
+
         return zikrGoalMapRepository.createGoalMap(model)
     }
 

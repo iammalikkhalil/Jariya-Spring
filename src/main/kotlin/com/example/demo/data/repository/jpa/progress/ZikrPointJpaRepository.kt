@@ -18,7 +18,6 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         FROM ZikrPointEntity zp
         JOIN FETCH zp.user u
         LEFT JOIN FETCH zp.zikr z
-        LEFT JOIN FETCH zp.progress p
         JOIN FETCH zp.sourceUser su
         WHERE zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
@@ -30,7 +29,6 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         FROM ZikrPointEntity zp
         JOIN FETCH zp.user u
         LEFT JOIN FETCH zp.zikr z
-        LEFT JOIN FETCH zp.progress p
         JOIN FETCH zp.sourceUser su
         WHERE zp.updatedAt > :updatedAt
           AND zp.isDeleted = false

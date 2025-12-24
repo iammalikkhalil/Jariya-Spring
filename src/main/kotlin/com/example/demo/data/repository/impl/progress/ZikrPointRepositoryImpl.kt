@@ -50,7 +50,7 @@ class ZikrPointRepositoryImpl(
         val zikr = zikrPoint.zikrId?.let { zikrJpaRepository.getReferenceById(it.toUUID()) }
         val progress = zikrPoint.progressId?.let { zikrProgressJpaRepository.getReferenceById(it.toUUID()) }
 
-        val entity = zikrPoint.toEntity(user, sourceUser, zikr, progress)
+        val entity = zikrPoint.toEntity(user, sourceUser, zikr)
         zikrPointJpaRepository.save(entity)
         syncLogRepository.updateSyncLog("zikr_point")
 
@@ -71,7 +71,7 @@ class ZikrPointRepositoryImpl(
             val zikr = zikrPoint.zikrId?.let { zikrJpaRepository.getReferenceById(it.toUUID()) }
             val progress = zikrPoint.progressId?.let { zikrProgressJpaRepository.getReferenceById(it.toUUID()) }
 
-            val entity = zikrPoint.toEntity(user, sourceUser, zikr, progress)
+            val entity = zikrPoint.toEntity(user, sourceUser, zikr)
             zikrPointJpaRepository.save(entity)
             syncLogRepository.updateSyncLog("zikr_point")
 
