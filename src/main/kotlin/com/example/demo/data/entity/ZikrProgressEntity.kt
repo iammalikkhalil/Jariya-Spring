@@ -22,8 +22,8 @@ class ZikrProgressEntity(
     var id: UUID,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    var user: UserEntity,
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    var user: UserEntity? = null,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")

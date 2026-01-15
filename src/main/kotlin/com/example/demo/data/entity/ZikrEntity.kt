@@ -2,7 +2,7 @@ package com.example.demo.data.entity
 
 import jakarta.persistence.*
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(
@@ -68,4 +68,29 @@ class ZikrEntity(
 
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null
-)
+) {
+
+    /**
+     * ✅ ID-only constructor for FK reference usage
+     * Used ONLY for relation linking (no insert/update)
+     */
+    constructor(id: UUID) : this(
+        id = id,
+        textAr = "",
+        titleEn = null,
+        titleUr = null,
+        transliteration = null,
+        quantityNotes = null,
+        sourceNotes = null,
+        isQuran = false,
+        isHadith = false,
+        isVerified = false,
+        verifiedByName = null,
+        charCount = 0,
+        verifiedDate = null,
+        createdAt = Instant.EPOCH,
+        updatedAt = Instant.EPOCH,
+        isDeleted = false,
+        deletedAt = null
+    )
+}

@@ -72,11 +72,3 @@ data class ZikrPointRequestDto (
 data class ZikrPointSummaryRequestDto (
     val id: String = generateUUID(),
 )
-
-
-
-
-
-
-
-

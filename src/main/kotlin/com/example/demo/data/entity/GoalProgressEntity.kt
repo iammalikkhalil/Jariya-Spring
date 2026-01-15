@@ -23,18 +23,16 @@ class GoalProgressEntity(
     var id: UUID,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    var user: UserEntity,
+    @JoinColumn(name = "user_id", referencedColumnName = "id")
+    var user: UserEntity?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")
     var zikr: ZikrEntity? = null,
 
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "goal_id", referencedColumnName = "id")
     var goal: ZikrGoalEntity? = null,
-
 
     @Column(name = "device_id")
     var deviceId: UUID? = null,

@@ -17,5 +17,5 @@ interface UserRepository {
     fun markUserAsVerified(userId: String): Boolean
     fun getUserByReferralCode(referralCode: String): UserModel?
     fun isAlreadyParent(child: String, parent: String): Boolean
-
+    fun countAllActiveVerifiedUsers(): Long
 }

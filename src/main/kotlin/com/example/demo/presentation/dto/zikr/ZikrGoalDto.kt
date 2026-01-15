@@ -19,6 +19,9 @@ data class ZikrGoalDto(
     @field:Size(max = 2000, message = "Description cannot exceed 2000 characters")
     val description: String? = null,
 
+    @field:Size(max = 2000, message = "Description cannot exceed 2000 characters")
+    val category: String? = null,
+
     @field:Size(max = 2000, message = "Arabic text cannot exceed 2000 characters")
     val arabicText: String? = null,
 
@@ -27,6 +30,9 @@ data class ZikrGoalDto(
 
     @field:Min(value = 1, message = "Target value must be at least 1")
     val targetValue: Int = 1,
+
+    @field:Min(value = 1, message = "Target value must be at least 1")
+    val globalTargetValue: Long = 1,
 
     @field:Size(max = 50, message = "Unit cannot exceed 50 characters")
     val unit: String? = null,

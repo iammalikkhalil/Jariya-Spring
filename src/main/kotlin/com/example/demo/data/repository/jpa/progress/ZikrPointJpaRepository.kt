@@ -1,6 +1,7 @@
 package com.example.demo.data.repository.jpa.progress
 
 import com.example.demo.data.entity.ZikrPointEntity
+import com.example.demo.domain.model.zikr.GoalStatsProjection
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -92,4 +93,37 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         nativeQuery = true
     )
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
+
+
+
+    @Query(
+        value = """
+        SELECT
+    gp.goal_id AS goalId,
+    COALESCE(SUM(zp.points), 0) AS earnedHasanats
+    FROM zikr_points zp
+    INNER JOIN goal_progress gp
+    ON gp.id = zp.progress_id::uuid
+    AND zp.progress_id ~ '^[0-9a-fA-F-]{36}${'$'}'
+    WHERE zp.progress_type = 'goal'
+    AND zp.is_deleted = false
+    AND gp.is_deleted = false
+    AND gp.goal_id IS NOT NULL
+    GROUP BY gp.goal_id;    
+    """,
+        nativeQuery = true
+    )
+    fun getGoalsStatsGrouped(): List<GoalStatsProjection>
+
+    @Query(
+        value = """
+        SELECT COUNT(DISTINCT user_id)
+        FROM zikr_points
+        WHERE is_deleted = false
+          AND user_id IS NOT NULL
+    """,
+        nativeQuery = true
+    )
+    fun countDistinctActiveUsers(): Long
+
 }

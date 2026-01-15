@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>WebSocket STOMP Stats Test</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@stomp/stompjs@7.0.0/bundles/stomp.umd.min.js"></script>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #e5e7eb;
+            padding: 20px;
+        }
+        h1 { color: #38bdf8; }
+
+        button {
+            background: #22c55e;
+            border: none;
+            padding: 10px 16px;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 6px;
+            margin-right: 10px;
+        }
+        button:disabled {
+            background: #64748b;
+            cursor: not-allowed;
+        }
+
+        input {
+            padding: 10px;
+            width: 300px;
+            border-radius: 6px;
+            border: none;
+            margin-right: 10px;
+        }
+
+        #log {
+            background: #020617;
+            border: 1px solid #1e293b;
+            padding: 10px;
+            height: 78vh;
+            overflow-y: auto;
+            margin-top: 15px;
+            font-family: monospace;
+            font-size: 13px;
+        }
+
+        .success { color: #22c55e; }
+        .info { color: #38bdf8; }
+        .error { color: #ef4444; }
+        .msg { color: #facc15; }
+        .dim { color: #94a3b8; }
+    </style>
+</head>
+
+<body>
+
+<h1>WebSocket STOMP – Stats Debug (ngrok)</h1>
+
+<input id="messageInput" placeholder="Ping message (optional)" />
+
+<button id="connectBtn">Connect</button>
+<button id="sendBtn" disabled>Send /app/ping</button>
+<button id="disconnectBtn" disabled>Disconnect</button>
+
+<div id="log"></div>
+
+<script>
+    let stompClient = null;
+
+    const logDiv = document.getElementById("log");
+    const connectBtn = document.getElementById("connectBtn");
+    const sendBtn = document.getElementById("sendBtn");
+    const disconnectBtn = document.getElementById("disconnectBtn");
+    const messageInput = document.getElementById("messageInput");
+
+    function log(message, type = "info") {
+        const div = document.createElement("div");
+        div.className = type;
+        div.innerText = `[${new Date().toLocaleTimeString()}] ${message}`;
+        logDiv.appendChild(div);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+
+    /* ===================== CONNECT ===================== */
+
+    connectBtn.onclick = () => {
+        log("Connecting to WebSocket...", "info");
+
+        stompClient = new StompJs.Client({
+            webSocketFactory: () =>
+                // new WebSocket("wss://api.jariya.net/ws"),
+                new WebSocket("ws://localhost:8084/ws"),
+
+            reconnectDelay: 5000,
+            heartbeatIncoming: 4000,
+            heartbeatOutgoing: 4000,
+            debug: () => {}
+        });
+
+        stompClient.onConnect = () => {
+            log("CONNECTED ✅", "success");
+
+            /* ---------- PONG ---------- */
+            stompClient.subscribe("/topic/pong", msg => {
+                log("PONG → " + msg.body, "msg");
+            });
+
+            /* ---------- GLOBAL STATS ---------- */
+            stompClient.subscribe("/topic/stats/global", msg => {
+                const data = JSON.parse(msg.body);
+
+                log(
+                    `🌍 GLOBAL | totalUsers=${data.totalUsers}, activeUsers=${data.activeUsers}, totalHasanats=${data.totalHasanats}`,
+                    "success"
+                );
+            });
+
+            /* ---------- GOALS STATS ---------- */
+            stompClient.subscribe("/topic/stats/goals", msg => {
+                const data = JSON.parse(msg.body);
+
+                log(
+                    `🎯 GOALS | totalUsers=${data.totalUsers}, activeUsers=${data.activeUsers}`,
+                    "success"
+                );
+
+                data.goals.forEach(g => {
+                    log(
+                        `   └─ goalId=${g.goalId}, earnedHasanats=${g.earnedHasanats}`,
+                        "msg"
+                    );
+                });
+            });
+
+            connectBtn.disabled = true;
+            sendBtn.disabled = false;
+            disconnectBtn.disabled = false;
+        };
+
+        stompClient.onWebSocketError = err => {
+            log("WebSocket error ❌", "error");
+            console.error(err);
+        };
+
+        stompClient.onStompError = frame => {
+            log("STOMP error ❌ " + frame.headers["message"], "error");
+            console.error(frame.body);
+        };
+
+        stompClient.activate();
+    };
+
+    /* ===================== PING ===================== */
+
+    sendBtn.onclick = () => {
+        const text = messageInput.value.trim();
+
+        stompClient.publish({
+            destination: "/app/ping",
+            body: JSON.stringify({ message: text })
+        });
+
+        log("PING sent → " + text, "info");
+        messageInput.value = "";
+    };
+
+    /* ===================== DISCONNECT ===================== */
+
+    disconnectBtn.onclick = () => {
+        stompClient.deactivate();
+        log("DISCONNECTED ❌", "error");
+
+        connectBtn.disabled = false;
+        sendBtn.disabled = true;
+        disconnectBtn.disabled = true;
+    };
+</script>
+
+</body>
+</html>

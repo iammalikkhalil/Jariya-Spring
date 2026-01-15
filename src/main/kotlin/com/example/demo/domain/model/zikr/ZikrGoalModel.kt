@@ -10,10 +10,12 @@ data class ZikrGoalModel(
 
     val title: String,
     val description: String?,
+    val category: String?,
     val arabicText: String?,
 
     val type: GoalType?,
     val targetValue: Int,
+    val globalTargetValue: Long,
     val unit: String?,
 
     val sourceType: GoalSourceType?,

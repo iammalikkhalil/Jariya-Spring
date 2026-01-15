@@ -23,4 +23,8 @@ interface UserJpaRepository : JpaRepository<UserEntity, UUID> {
     @Modifying(clearAutomatically = true, flushAutomatically = false)
     @Query("UPDATE UserEntity u SET u.password = :password, u.updatedAt = :updatedAt WHERE u.id = :id")
     fun resetPassword(id: UUID, password: String, updatedAt: Instant): Int
+
+    // ✅ NEW: Count all non-deleted users
+    @Query("SELECT COUNT(u) FROM UserEntity u WHERE u.isDeleted = false AND u.isActive = true AND u.isVerified = true")
+    fun countAllActiveVerifiedUsers(): Long
 }

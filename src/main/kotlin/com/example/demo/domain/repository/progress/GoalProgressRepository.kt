@@ -1,6 +1,8 @@
 package com.example.demo.domain.repository.progress
 
 import com.example.demo.domain.model.progress.GoalProgressModel
+import com.example.demo.presentation.dto.sync.GoalProgressSyncDto
+import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncResponseDto
 
 
 interface GoalProgressRepository {
@@ -12,4 +14,10 @@ interface GoalProgressRepository {
      fun getUncompletedRecords(): List<GoalProgressModel>
      fun incrementGoalProgress(id: String, level: Int): Boolean
      fun markGoalProgressAsComplete(id: String): Boolean
+     fun countTotalUsers(): Long
+
+     // ✅ NEW — bulk client-truth persist
+     fun bulkPersistFromClient(
+          items: List<GoalProgressSyncDto>
+     ): ZikrPointBulkSyncResponseDto
 }

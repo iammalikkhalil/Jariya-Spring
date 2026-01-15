@@ -13,18 +13,21 @@ import java.util.*
 interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
 
     // ✅ JOIN FETCH ensures user & zikr are loaded in single query (no N+1)
-    @Query("""
+    @Query(
+        """
         SELECT zp
         FROM GoalProgressEntity zp
         JOIN FETCH zp.user u
         LEFT JOIN FETCH zp.zikr z
         WHERE zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
-    """)
+    """
+    )
     fun findAllActive(): List<GoalProgressEntity>
 
     // ✅ Fetch uncompleted with eager relations
-    @Query("""
+    @Query(
+        """
         SELECT zp
         FROM GoalProgressEntity zp
         JOIN FETCH zp.user u
@@ -32,11 +35,13 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
         WHERE zp.isCompleted = false
           AND zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
-    """)
+    """
+    )
     fun findUncompleted(): List<GoalProgressEntity>
 
     // ✅ Fetch updated entries with eager joins
-    @Query("""
+    @Query(
+        """
         SELECT zp
         FROM GoalProgressEntity zp
         JOIN FETCH zp.user u
@@ -44,7 +49,8 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
         WHERE zp.updatedAt > :updatedAt
           AND zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
-    """)
+    """
+    )
     fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<GoalProgressEntity>
 
     // ✅ Soft delete (native for speed)
@@ -86,4 +92,41 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
         nativeQuery = true
     )
     fun markAsComplete(@Param("id") id: UUID, @Param("now") now: Instant): Int
+
+
+    @Query(
+        """
+        SELECT gp
+        FROM GoalProgressEntity gp
+        WHERE gp.id IN :ids
+    """
+    )
+    fun findAllByIds(@Param("ids") ids: List<UUID>): List<GoalProgressEntity>
+
+
+    @Query(
+        value = """
+        SELECT COUNT(DISTINCT user_id)
+        FROM goal_progress
+        WHERE is_deleted = false
+          AND user_id IS NOT NULL
+    """,
+        nativeQuery = true
+    )
+    fun countDistinctActiveUsers(): Long
+
+
+    @Query(
+        value = """
+    SELECT *
+    FROM goal_progress
+    WHERE is_deleted = false
+      AND goal_id IS NOT NULL
+    """,
+        nativeQuery = true
+    )
+    fun findAllActiveGoalProgress(): List<GoalProgressEntity>
+
+
+
 }

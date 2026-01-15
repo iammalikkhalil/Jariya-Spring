@@ -9,7 +9,7 @@ import java.util.*
 fun ZikrProgressEntity.toModel(): ZikrProgressModel =
     ZikrProgressModel(
         id = id.toString(),
-        userId = user.id.toString(),
+        userId = user?.id.toString(),
         zikrId = zikr?.id?.toString() ?: "",
         deviceId = deviceId?.toString(),
         sessionId = sessionId?.toString(),

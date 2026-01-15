@@ -15,10 +15,12 @@ fun ZikrGoalDto.toModel() = ZikrGoalModel(
 
     title = this.title,
     description = this.description,
+    category = this.category,
     arabicText = this.arabicText,
 
     type = this.type?.let { GoalType.fromStringOrThrow(it) },
     targetValue = this.targetValue,
+    globalTargetValue = this.globalTargetValue,
     unit = this.unit,
 
     sourceType = this.sourceType?.let { GoalSourceType.fromStringOrThrow(it) },
@@ -48,10 +50,12 @@ fun ZikrGoalModel.toDto() = ZikrGoalDto(
 
     title = this.title,
     description = this.description,
+    category = this.category,
     arabicText = this.arabicText,
 
     type = this.type.toString(),
     targetValue = this.targetValue,
+    globalTargetValue = this.globalTargetValue,
     unit = this.unit,
 
     sourceType = this.sourceType.toString(),
@@ -79,10 +83,12 @@ fun ZikrGoalEntity.toModel() = ZikrGoalModel(
 
     title = this.title,
     description = this.description,
+    category = this.category,
     arabicText = this.arabicText,
 
     type = this.type,
     targetValue = this.targetValue,
+    globalTargetValue = this.globalTargetValue,
     unit = this.unit,
 
     sourceType = this.sourceType,
@@ -110,10 +116,12 @@ fun ZikrGoalModel.toEntity() = ZikrGoalEntity(
 
     title = this.title,
     description = this.description,
+    category = this.category,
     arabicText = this.arabicText,
 
     type = this.type,
     targetValue = this.targetValue,
+    globalTargetValue = this.globalTargetValue,
     unit = this.unit,
 
     sourceType = this.sourceType,

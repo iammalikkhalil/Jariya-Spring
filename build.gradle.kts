@@ -22,6 +22,7 @@ repositories {
 }
 
 dependencies {
+
 	implementation("org.springframework.boot:spring-boot-starter-security")
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -56,6 +57,7 @@ dependencies {
 	implementation("com.google.api-client:google-api-client:2.6.0")
 	implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
 	implementation("com.google.http-client:google-http-client-gson:1.44.1")
+	implementation("org.springframework.boot:spring-boot-starter-websocket")
 
 
 }

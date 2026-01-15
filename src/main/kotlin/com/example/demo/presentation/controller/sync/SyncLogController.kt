@@ -1,7 +1,13 @@
 package com.example.demo.presentation.controller.sync
 
+import com.example.demo.domain.enums.sync.SyncStatus
 import com.example.demo.infrastructure.utils.Log
 import com.example.demo.presentation.dto.ApiResponse
+import com.example.demo.presentation.dto.sync.GoalProgressBulkSyncRequestDto
+import com.example.demo.presentation.dto.sync.SyncAcknowledgeDto
+import com.example.demo.presentation.dto.sync.SyncSummaryDto
+import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncRequestDto
+import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncResponseDto
 import com.example.demo.presentation.dto.zikr.TimeDto
 import com.example.demo.presentation.service.sync.SyncLogService
 import org.springframework.http.HttpStatus

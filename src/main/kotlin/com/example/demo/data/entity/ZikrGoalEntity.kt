@@ -31,6 +31,9 @@ class ZikrGoalEntity(
     @Column(name = "description", columnDefinition = "TEXT")
     var description: String? = null,
 
+    @Column(name = "category", columnDefinition = "TEXT")
+    var category: String? = null,
+
     @Column(name = "arabic_text", columnDefinition = "TEXT")
     var arabicText: String? = null,
 
@@ -41,6 +44,10 @@ class ZikrGoalEntity(
     @field:Min(1)
     @Column(name = "target_value", nullable = false)
     var targetValue: Int,
+
+    @field:Min(1)
+    @Column(name = "global_target_value", nullable = false)
+    var globalTargetValue: Long,
 
     @field:Size(max = 50)
     @Column(name = "unit", length = 50)
@@ -86,6 +93,35 @@ class ZikrGoalEntity(
     @Column(name = "deleted_at")
     var deletedAt: Instant? = null
 ) {
+
+    /**
+     * ✅ ID-only constructor for FK reference usage
+     * Used ONLY for relation linking (no insert/update)
+     */
+    constructor(id: UUID) : this(
+        id = id,
+        title = "",
+        description = null,
+        category = null,
+        arabicText = null,
+        type = null,
+        targetValue = 1,          // must satisfy @Min(1)
+        globalTargetValue = 1,          // must satisfy @Min(1)
+        unit = null,
+        sourceType = null,
+        sourceRef = null,
+        verifiedBy = null,
+        showFrom = null,
+        showUntil = null,
+        isRecurring = false,
+        recurrence = null,
+        isFeatured = false,
+        orderIndex = 0,
+        createdAt = Instant.EPOCH,
+        updatedAt = Instant.EPOCH,
+        isDeleted = false,
+        deletedAt = null
+    )
 
     fun softDelete() {
         isDeleted = true

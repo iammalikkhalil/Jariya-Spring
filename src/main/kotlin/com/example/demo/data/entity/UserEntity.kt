@@ -1,10 +1,12 @@
 package com.example.demo.data.entity
 
-
 import com.example.demo.domain.enums.AuthProvider
-import jakarta.persistence.*
+import jakarta.persistence.Column
+import jakarta.persistence.Entity
+import jakarta.persistence.Id
+import jakarta.persistence.Table
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Entity
 @Table(name = "users")
@@ -52,4 +54,25 @@ data class UserEntity(
 
     @Column(name = "deleted_at")
     val deletedAt: Instant? = null
-)
+) {
+    /**
+     * ✅ ID-only constructor for FK reference usage
+     * Used ONLY for linking relations (no insert/update)
+     */
+    constructor(id: UUID) : this(
+        id = id,
+        name = "",
+        email = "",
+        password = null,
+        profileImage = null,
+        authProvider = AuthProvider.USERNAME_PASSWORD.value,
+        referralCode = "",
+        referredBy = null,
+        isActive = true,
+        isVerified = false,
+        isDeleted = false,
+        createdAt = Instant.EPOCH,
+        updatedAt = Instant.EPOCH,
+        deletedAt = null
+    )
+}
