@@ -17,34 +17,48 @@ class WebSocketEventLogger(
 
     @EventListener
     fun onConnect(event: SessionConnectEvent) {
-        WebSocketStatsTracker.onSessionConnected()
+        val sessionId = StompHeaderAccessor.wrap(event.message).sessionId ?: return
+
+        WebSocketStatsTracker.onSessionConnected(sessionId)
         statsBroadcastService.broadcastGlobalStats()
-        log.info("🟢 WS CONNECT | activeSessions={}", WebSocketStatsTracker.getTotalActiveSessions())
+
+        log.info("🟢 CONNECT | session={} | activeSessions={}",
+            sessionId,
+            WebSocketStatsTracker.getTotalActiveSessions()
+        )
     }
 
     @EventListener
     fun onDisconnect(event: SessionDisconnectEvent) {
-        WebSocketStatsTracker.onSessionDisconnected()
+        val sessionId = StompHeaderAccessor.wrap(event.message).sessionId ?: return
+
+        WebSocketStatsTracker.onSessionDisconnected(sessionId)
         statsBroadcastService.broadcastGlobalStats()
-        log.info("🔴 WS DISCONNECT | activeSessions={}", WebSocketStatsTracker.getTotalActiveSessions())
+
+        log.info("🔴 DISCONNECT | session={} | activeSessions={}",
+            sessionId,
+            WebSocketStatsTracker.getTotalActiveSessions()
+        )
     }
 
     @EventListener
     fun onSubscribe(event: SessionSubscribeEvent) {
-        val destination = StompHeaderAccessor.wrap(event.message).destination
+        val accessor = StompHeaderAccessor.wrap(event.message)
+        val sessionId = accessor.sessionId ?: return
+        val destination = accessor.destination ?: return
+
         val topic = StatsTopic.fromDestination(destination) ?: return
 
-        WebSocketStatsTracker.onTopicSubscribed(topic)
+        WebSocketStatsTracker.onTopicSubscribed(sessionId, topic)
 
-        // ✅ SEND DATA IMMEDIATELY
         when (topic) {
             StatsTopic.GLOBAL -> statsBroadcastService.broadcastGlobalStats()
             StatsTopic.GOALS -> statsBroadcastService.broadcastGoalsStats()
             else -> {}
         }
 
-        log.info(
-            "📡 SUBSCRIBE | topic={} | count={}",
+        log.info("📡 SUBSCRIBE | session={} | topic={} | count={}",
+            sessionId,
             topic.name,
             WebSocketStatsTracker.getActiveUsersForTopic(topic)
         )
@@ -52,19 +66,16 @@ class WebSocketEventLogger(
 
     @EventListener
     fun onUnsubscribe(event: SessionUnsubscribeEvent) {
-        val destination = StompHeaderAccessor.wrap(event.message).destination
+        val accessor = StompHeaderAccessor.wrap(event.message)
+        val sessionId = accessor.sessionId ?: return
+        val destination = accessor.destination ?: return
+
         val topic = StatsTopic.fromDestination(destination) ?: return
 
-        WebSocketStatsTracker.onTopicUnsubscribed(topic)
-        // ✅ SEND DATA IMMEDIATELY
-        when (topic) {
-            StatsTopic.GOALS -> statsBroadcastService.broadcastGoalsStats()
-            else -> {}
-        }
+        WebSocketStatsTracker.onTopicUnsubscribed(sessionId, topic)
 
-
-        log.info(
-            "📴 UNSUBSCRIBE | topic={} | count={}",
+        log.info("📴 UNSUBSCRIBE | session={} | topic={} | count={}",
+            sessionId,
             topic.name,
             WebSocketStatsTracker.getActiveUsersForTopic(topic)
         )

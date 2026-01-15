@@ -16,7 +16,7 @@ class StatsWebSocketScheduler(
     /**
      * Runs every 5 minutes (safety net)
      */
-    @Scheduled(fixedRate = 1 * 30 * 1000)
+    @Scheduled(fixedRate = 5 * 60 * 1000)
     fun broadcastStatsEvery5Minutes() {
         log.info("⏱ Broadcasting stats every 5 minutes (safety net)")
 
