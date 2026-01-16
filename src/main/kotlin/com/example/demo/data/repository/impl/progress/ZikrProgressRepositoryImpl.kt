@@ -28,10 +28,12 @@ class ZikrProgressRepositoryImpl(
     private val syncLogRepository: SyncLogRepository
 ) : ZikrProgressRepository {
 
+    // -------------------- READ --------------------
+
     @Transactional(readOnly = true)
     override fun getAllZikrProgresses(): List<ZikrProgressModel> {
         val start = System.currentTimeMillis()
-        Log.info("⏱ Fetching ZikrProgress records with JOIN FETCH...")
+        Log.info("⏱ Fetching ZikrProgress records...")
         val result = zikrProgressJpaRepository.findAllActive().map { it.toModel() }
         Log.info("✅ getAllZikrProgresses completed in ${System.currentTimeMillis() - start}ms (${result.size} records)")
         return result
@@ -42,12 +44,16 @@ class ZikrProgressRepositoryImpl(
         return zikrProgressJpaRepository.findById(id.toUUID()).orElse(null)?.toModel()
     }
 
+    // -------------------- CREATE --------------------
+
     @Transactional(rollbackFor = [Exception::class])
     override fun createZikrProgress(zikrProgress: ZikrProgressModel): Boolean {
         return try {
-            val user = userJpaRepository.findById(zikrProgress.userId.toUUID()).orElse(null)
+            val userId = zikrProgress.userId
+
+            val user = userJpaRepository.findById(userId.toUUID()).orElse(null)
             if (user == null) {
-                Log.error("❌ User not found: ${zikrProgress.userId}")
+                Log.error("❌ User not found: $userId")
                 return false
             }
 
@@ -57,19 +63,23 @@ class ZikrProgressRepositoryImpl(
                 return false
             }
 
+            // ✅ ZikrProgress still uses UserEntity FK
             val progress = zikrProgress.toEntity(user, zikr)
             zikrProgressJpaRepository.save(progress)
 
             val now = Instant.now()
-            val tree = referralRepository.getReferralTreeUp(zikrProgress.userId)
             val basePoints = zikrProgress.count * 10 * zikr.charCount
 
+            val tree = referralRepository.getReferralTreeUp(userId)
+
             val points = mutableListOf<ZikrPointEntity>().apply {
+
+                // ✅ ZIKR points (store userId as String)
                 add(
                     ZikrPointEntity(
                         id = generateUUID().toUUID(),
-                        user = user,
-                        sourceUser = user,
+                        user = userId,
+                        sourceUser = userId,
                         zikr = zikr,
                         progressType = "zikr",
                         progressId = progress.id.toString(),
@@ -81,37 +91,38 @@ class ZikrProgressRepositoryImpl(
                     )
                 )
 
+                // ✅ Referral points (store ancestorId as String)
                 tree.forEach { dto ->
-                    userJpaRepository.findById(dto.ancestor.toUUID()).ifPresent { ancestor ->
-                        add(
-                            ZikrPointEntity(
-                                id = generateUUID().toUUID(),
-                                user = ancestor,
-                                sourceUser = user,
-                                zikr = zikr,
-                                progressType = "zikr",
-                                progressId = progress.id.toString(),
-                                level = dto.level,
-                                points = basePoints,
-                                sourceType = "REFERRAL",
-                                createdAt = now,
-                                updatedAt = now
-                            )
+                    add(
+                        ZikrPointEntity(
+                            id = generateUUID().toUUID(),
+                            user = dto.ancestor,
+                            sourceUser = userId,
+                            zikr = zikr,
+                            progressType = "zikr",
+                            progressId = progress.id.toString(),
+                            level = dto.level,
+                            points = basePoints,
+                            sourceType = "REFERRAL",
+                            createdAt = now,
+                            updatedAt = now
                         )
-                    }
+                    )
                 }
             }
 
             zikrPointJpaRepository.saveAll(points)
             syncLogRepository.updateSyncLog("zikr_progress")
 
-            Log.info("✅ ZikrProgress + ${points.size} points created for user ${zikrProgress.userId}")
+            Log.info("✅ ZikrProgress + ${points.size} points created for user $userId")
             true
         } catch (e: Exception) {
             Log.error("❌ Error creating ZikrProgress: ${e.message}", e)
             false
         }
     }
+
+    // -------------------- UPDATE --------------------
 
     @Transactional(rollbackFor = [Exception::class])
     override fun updateZikrProgress(zikrProgress: ZikrProgressModel): Boolean {
@@ -130,6 +141,7 @@ class ZikrProgressRepositoryImpl(
                 return false
             }
 
+            // ✅ Still uses UserEntity FK
             zikrProgressJpaRepository.save(zikrProgress.toEntity(user, zikr))
             syncLogRepository.updateSyncLog("zikr_progress")
 
@@ -140,6 +152,8 @@ class ZikrProgressRepositoryImpl(
             false
         }
     }
+
+    // -------------------- DELETE --------------------
 
     @Transactional(rollbackFor = [Exception::class])
     override fun deleteZikrProgress(id: String): Boolean {
@@ -157,6 +171,8 @@ class ZikrProgressRepositoryImpl(
             false
         }
     }
+
+    // -------------------- EXTRA --------------------
 
     @Transactional(readOnly = true)
     override fun getUncompletedRecords(): List<ZikrProgressModel> {

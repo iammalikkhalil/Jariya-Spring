@@ -8,14 +8,14 @@ import java.util.*
 fun ZikrPointEntity.toModel(): ZikrPointModel =
     ZikrPointModel(
         id = id.toString(),
-        userId = user.id.toString(),
+        userId = user,
         zikrId = zikr?.id?.toString(),
         progressId = progressId,
         progressType = progressType,
         level = level,
         points = points,
         pointsSourceType = PointsSourceType.valueOf(sourceType),
-        sourceUser = sourceUser.id.toString(),
+        sourceUser = sourceUser,
         isDeleted = isDeleted,
         createdAt = createdAt,
         updatedAt = updatedAt,
@@ -23,20 +23,18 @@ fun ZikrPointEntity.toModel(): ZikrPointModel =
     )
 
 fun ZikrPointModel.toEntity(
-    userEntity: UserEntity,
-    sourceUserEntity: UserEntity,
     zikrEntity: ZikrEntity? = null,
 ): ZikrPointEntity =
     ZikrPointEntity(
         id = UUID.fromString(id),
-        user = userEntity,
+        user = userId,
         zikr = zikrEntity,
         progressId = progressId,
         progressType = progressType,
         level = level,
         points = points,
         sourceType = pointsSourceType.name,
-        sourceUser = sourceUserEntity,
+        sourceUser = sourceUser,
         isDeleted = isDeleted,
         createdAt = createdAt,
         updatedAt = updatedAt,

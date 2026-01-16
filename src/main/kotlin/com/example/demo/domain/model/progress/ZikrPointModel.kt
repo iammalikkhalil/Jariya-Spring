@@ -17,7 +17,7 @@ data class ZikrPointModel(
     val level: Int,
     val points: Int,
     val pointsSourceType: PointsSourceType,
-    val sourceUser: String,
+    val sourceUser: String?,
 
     val isDeleted: Boolean,
 

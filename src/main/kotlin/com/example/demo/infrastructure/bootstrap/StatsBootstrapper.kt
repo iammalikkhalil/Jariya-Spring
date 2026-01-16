@@ -8,9 +8,13 @@ import org.springframework.stereotype.Component
 class StatsBootstrapper(
     private val statsCalculationService: StatsCalculationService
 ) {
-
     @PostConstruct
     fun bootstrap() {
-        statsCalculationService.recalculateAll()
+        try {
+            statsCalculationService.recalculateAll()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
+
 }

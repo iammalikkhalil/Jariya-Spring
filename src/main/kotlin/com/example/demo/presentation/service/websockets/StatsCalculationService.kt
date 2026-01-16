@@ -2,6 +2,7 @@ package com.example.demo.presentation.service.websockets
 
 import com.example.demo.domain.repository.auth.UserRepository
 import com.example.demo.domain.repository.progress.ZikrPointRepository
+import com.example.demo.infrastructure.utils.Log
 import org.springframework.stereotype.Service
 
 @Service
@@ -15,6 +16,12 @@ class StatsCalculationService(
 
     fun recalculateTotalUsers() {
         val totalUsers = userRepository.countAllActiveVerifiedUsers()
+
+        Log.info("__________________________________________________________________")
+        Log.info("total users: $totalUsers")
+        Log.info("__________________________________________________________________")
+
+
         cache.updateTotalUsers(totalUsers)
     }
 

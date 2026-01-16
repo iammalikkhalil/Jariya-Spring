@@ -7,65 +7,62 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
 
-    // ✅ JOIN FETCH ensures user & zikr are loaded in single query (no N+1)
     @Query(
         """
-        SELECT zp
-        FROM GoalProgressEntity zp
-        JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """
+        SELECT gp
+        FROM GoalProgressEntity gp
+        LEFT JOIN FETCH gp.zikr z
+        LEFT JOIN FETCH gp.goal g
+        WHERE gp.isDeleted = false
+        ORDER BY gp.updatedAt DESC
+        """
     )
     fun findAllActive(): List<GoalProgressEntity>
 
-    // ✅ Fetch uncompleted with eager relations
     @Query(
         """
-        SELECT zp
-        FROM GoalProgressEntity zp
-        JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.isCompleted = false
-          AND zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """
+        SELECT gp
+        FROM GoalProgressEntity gp
+        LEFT JOIN FETCH gp.zikr z
+        LEFT JOIN FETCH gp.goal g
+        WHERE gp.isCompleted = false
+          AND gp.isDeleted = false
+        ORDER BY gp.updatedAt DESC
+        """
     )
     fun findUncompleted(): List<GoalProgressEntity>
 
-    // ✅ Fetch updated entries with eager joins
     @Query(
         """
-        SELECT zp
-        FROM GoalProgressEntity zp
-        JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.updatedAt > :updatedAt
-          AND zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """
+        SELECT gp
+        FROM GoalProgressEntity gp
+        LEFT JOIN FETCH gp.zikr z
+        LEFT JOIN FETCH gp.goal g
+        WHERE gp.updatedAt > :updatedAt
+          AND gp.isDeleted = false
+        ORDER BY gp.updatedAt DESC
+        """
     )
     fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<GoalProgressEntity>
 
-    // ✅ Soft delete (native for speed)
+    // ✅ FIX: Wrong table name in your query (you wrote zikr_progress)
     @Modifying
     @Query(
-        value = "UPDATE zikr_progress SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
+        value = "UPDATE goal_progress SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
         nativeQuery = true
     )
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
 
-    // ✅ Increment progress via native update
+    // ✅ FIX: Wrong table name in your query (you wrote zikr_progress)
     @Modifying
     @Query(
         value = """
-        UPDATE zikr_progress
+        UPDATE goal_progress
         SET processed_levels = :level,
             is_started = true,
             updated_at = :updatedAt
@@ -79,11 +76,11 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
         @Param("updatedAt") updatedAt: Instant
     ): Int
 
-    // ✅ Mark as complete via native update
+    // ✅ FIX: Wrong table name in your query (you wrote zikr_progress)
     @Modifying
     @Query(
         value = """
-        UPDATE zikr_progress
+        UPDATE goal_progress
         SET is_completed = true,
             synced_at = :now,
             updated_at = :now
@@ -93,16 +90,14 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
     )
     fun markAsComplete(@Param("id") id: UUID, @Param("now") now: Instant): Int
 
-
     @Query(
         """
         SELECT gp
         FROM GoalProgressEntity gp
         WHERE gp.id IN :ids
-    """
+        """
     )
     fun findAllByIds(@Param("ids") ids: List<UUID>): List<GoalProgressEntity>
-
 
     @Query(
         value = """
@@ -110,23 +105,19 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
         FROM goal_progress
         WHERE is_deleted = false
           AND user_id IS NOT NULL
-    """,
+        """,
         nativeQuery = true
     )
     fun countDistinctActiveUsers(): Long
 
-
     @Query(
         value = """
-    SELECT *
-    FROM goal_progress
-    WHERE is_deleted = false
-      AND goal_id IS NOT NULL
-    """,
+        SELECT *
+        FROM goal_progress
+        WHERE is_deleted = false
+          AND goal_id IS NOT NULL
+        """,
         nativeQuery = true
     )
     fun findAllActiveGoalProgress(): List<GoalProgressEntity>
-
-
-
 }

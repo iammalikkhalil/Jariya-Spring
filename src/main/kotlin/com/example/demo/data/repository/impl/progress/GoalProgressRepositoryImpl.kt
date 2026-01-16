@@ -72,7 +72,6 @@ class GoalProgressRepositoryImpl(
     }
 
 
-
     // -------------------- CREATE --------------------
 
     @Transactional(rollbackFor = [Exception::class])
@@ -84,14 +83,6 @@ class GoalProgressRepositoryImpl(
         )
 
         return try {
-            val user = userJpaRepository.findById(goalProgress.userId.toUUID()).orElse(null)
-            if (user == null) {
-                log.error(
-                    "[REPO] 🔴 ❌ Create goal progress → FAILED | reason=UserNotFound | userId={}",
-                    goalProgress.userId
-                )
-                return false
-            }
 
             val zikr = zikrJpaRepository.findById(goalProgress.zikrId.toUUID()).orElse(null)
             if (zikr == null) {
@@ -111,58 +102,77 @@ class GoalProgressRepositoryImpl(
                 return false
             }
 
-            val progress = goalProgress.toEntity(user, zikr, goal)
+            // ✅ Always save progress (userId can be null)
+            val progress = goalProgress.toEntity(zikr, goal)
             goalProgressJpaRepository.save(progress)
 
-            val now = Instant.now()
-            val tree = referralRepository.getReferralTreeUp(goalProgress.userId)
-            val basePoints = goalProgress.count * 10 * zikr.charCount
+            val userId = goalProgress.userId
 
-            val points = mutableListOf<ZikrPointEntity>().apply {
-                add(
-                    ZikrPointEntity(
-                        id = generateUUID().toUUID(),
-                        user = user,
-                        progressType = "goal",
-                        progressId = progress.id.toString(),
-                        sourceUser = user,
-                        zikr = zikr,
-                        level = 0,
-                        points = basePoints,
-                        sourceType = "ZIKR",
-                        createdAt = now,
-                        updatedAt = now
-                    )
-                )
+            // ✅ Only if userId is present AND user exists → calculate referral & points
+            if (!userId.isNullOrBlank()) {
 
-                tree.forEach { dto ->
-                    userJpaRepository.findById(dto.ancestor.toUUID()).ifPresent { ancestor ->
+                val userExists = userJpaRepository.existsById(userId.toUUID())
+                if (userExists) {
+
+                    val now = Instant.now()
+                    val basePoints = goalProgress.count * 10 * zikr.charCount
+                    val tree = referralRepository.getReferralTreeUp(userId)
+
+                    val points = mutableListOf<ZikrPointEntity>().apply {
                         add(
                             ZikrPointEntity(
                                 id = generateUUID().toUUID(),
-                                user = ancestor,
-                                sourceUser = user,
-                                zikr = zikr,
+                                user = userId,                 // ✅ String
                                 progressType = "goal",
                                 progressId = progress.id.toString(),
-                                level = dto.level,
+                                sourceUser = userId,           // ✅ String
+                                zikr = zikr,
+                                level = 0,
                                 points = basePoints,
-                                sourceType = "REFERRAL",
+                                sourceType = "ZIKR",
                                 createdAt = now,
                                 updatedAt = now
                             )
                         )
+
+                        tree.forEach { dto ->
+                            add(
+                                ZikrPointEntity(
+                                    id = generateUUID().toUUID(),
+                                    user = dto.ancestor,         // ✅ String
+                                    sourceUser = userId,         // ✅ String
+                                    zikr = zikr,
+                                    progressType = "goal",
+                                    progressId = progress.id.toString(),
+                                    level = dto.level,
+                                    points = basePoints,
+                                    sourceType = "REFERRAL",
+                                    createdAt = now,
+                                    updatedAt = now
+                                )
+                            )
+                        }
                     }
+
+                    zikrPointJpaRepository.saveAll(points)
+                    syncLogRepository.updateSyncLog("zikr_progress")
+
+                    log.info(
+                        "[REPO] ✅ 🔹 Points created | userId={} | pointsCount={}",
+                        userId,
+                        points.size
+                    )
+                } else {
+                    log.warn(
+                        "[REPO] ⚠️ User not found, skipping referral/points | userId={}",
+                        userId
+                    )
                 }
             }
 
-            zikrPointJpaRepository.saveAll(points)
-            syncLogRepository.updateSyncLog("zikr_progress")
-
             log.info(
-                "[REPO] ✅ 🔹 Create goal progress → SUCCESS | userId={} | pointsCreated={}",
-                goalProgress.userId,
-                points.size
+                "[REPO] ✅ 🔹 Create goal progress → SUCCESS | id={}",
+                progress.id
             )
             true
         } catch (e: Exception) {
@@ -176,39 +186,41 @@ class GoalProgressRepositoryImpl(
     }
 
 
-
     // -------------------- UPDATE --------------------
 
     @Transactional(rollbackFor = [Exception::class])
     override fun updateGoalProgress(goalProgress: GoalProgressModel): Boolean {
         log.info(
-            "[REPO] 🔹 🚀 Update goal progress → START | id={}",
-            goalProgress.id
+            "[REPO] 🔹 🚀 Update goal progress → START | id={}", goalProgress.id
         )
 
         return try {
             if (!goalProgressJpaRepository.existsById(goalProgress.id.toUUID())) {
                 log.warn(
-                    "[REPO] ⚠️ ⏭️ Update goal progress → SKIPPED | reason=NotFound | id={}",
-                    goalProgress.id
+                    "[REPO] ⚠️ ⏭️ Update goal progress → SKIPPED | reason=NotFound | id={}", goalProgress.id
                 )
                 return false
             }
 
-            val user = userJpaRepository.findById(goalProgress.userId.toUUID()).orElse(null)
-            if (user == null) {
-                log.error(
-                    "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=UserNotFound | userId={}",
-                    goalProgress.userId
-                )
-                return false
+            goalProgress.userId?.let {
+
+                val user = userJpaRepository.findById(it.toUUID()).orElse(null)
+
+
+                if (user == null) {
+                    log.error(
+                        "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=UserNotFound | userId={}",
+                        goalProgress.userId
+                    )
+                    return false
+                }
             }
+
 
             val zikr = zikrJpaRepository.findById(goalProgress.zikrId.toUUID()).orElse(null)
             if (zikr == null) {
                 log.error(
-                    "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=ZikrNotFound | zikrId={}",
-                    goalProgress.zikrId
+                    "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=ZikrNotFound | zikrId={}", goalProgress.zikrId
                 )
                 return false
             }
@@ -216,30 +228,25 @@ class GoalProgressRepositoryImpl(
             val goal = zikrGoalJpaRepository.findById(goalProgress.goalId.toUUID()).orElse(null)
             if (goal == null) {
                 log.error(
-                    "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=GoalNotFound | goalId={}",
-                    goalProgress.goalId
+                    "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=GoalNotFound | goalId={}", goalProgress.goalId
                 )
                 return false
             }
 
-            goalProgressJpaRepository.save(goalProgress.toEntity(user, zikr, goal))
+            goalProgressJpaRepository.save(goalProgress.toEntity(zikr, goal))
             syncLogRepository.updateSyncLog("zikr_progress")
 
             log.info(
-                "[REPO] ✅ 🔹 Update goal progress → SUCCESS | id={}",
-                goalProgress.id
+                "[REPO] ✅ 🔹 Update goal progress → SUCCESS | id={}", goalProgress.id
             )
             true
         } catch (e: Exception) {
             log.error(
-                "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=Exception | message={}",
-                e.message,
-                e
+                "[REPO] 🔴 ❌ Update goal progress → FAILED | reason=Exception | message={}", e.message, e
             )
             false
         }
     }
-
 
 
     // -------------------- DELETE --------------------
@@ -253,22 +260,18 @@ class GoalProgressRepositoryImpl(
             if (deleted > 0) {
                 syncLogRepository.updateSyncLog("zikr_progress")
                 log.info(
-                    "[REPO] ✅ 🔹 Delete goal progress → SUCCESS | id={}",
-                    id
+                    "[REPO] ✅ 🔹 Delete goal progress → SUCCESS | id={}", id
                 )
                 true
             } else {
                 log.warn(
-                    "[REPO] ⚠️ ⏭️ Delete goal progress → SKIPPED | reason=NotFound | id={}",
-                    id
+                    "[REPO] ⚠️ ⏭️ Delete goal progress → SKIPPED | reason=NotFound | id={}", id
                 )
                 false
             }
         } catch (e: Exception) {
             log.error(
-                "[REPO] 🔴 ❌ Delete goal progress → FAILED | reason=Exception | message={}",
-                e.message,
-                e
+                "[REPO] 🔴 ❌ Delete goal progress → FAILED | reason=Exception | message={}", e.message, e
             )
             false
         }
@@ -276,14 +279,13 @@ class GoalProgressRepositoryImpl(
 
     // -------------------- BULK SYNC --------------------
 
-        @Transactional(rollbackFor = [Exception::class])
+    @Transactional(rollbackFor = [Exception::class])
     override fun bulkPersistFromClient(
         items: List<GoalProgressSyncDto>
     ): ZikrPointBulkSyncResponseDto {
 
         log.info(
-            "[REPO] 📥 🚀 Bulk goal progress sync → START | itemsCount={}",
-            items.size
+            "[REPO] 📥 🚀 Bulk goal progress sync → START | itemsCount={}", items.size
         )
 
         if (items.isEmpty()) {
@@ -291,17 +293,14 @@ class GoalProgressRepositoryImpl(
                 "[REPO] ⚠️ ⏭️ Bulk goal progress sync → SKIPPED | reason=EmptyItemList"
             )
             return ZikrPointBulkSyncResponseDto(
-                summary = SyncSummaryDto(syncedAt = Instant.now()),
-                acknowledge = emptyList()
+                summary = SyncSummaryDto(syncedAt = Instant.now()), acknowledge = emptyList()
             )
         }
 
         val start = System.currentTimeMillis()
         val now = Instant.now()
 
-        val existingMap =
-            goalProgressJpaRepository.findAllById(items.map { it.id.toUUID() })
-                .associateBy { it.id }
+        val existingMap = goalProgressJpaRepository.findAllById(items.map { it.id.toUUID() }).associateBy { it.id }
 
         val toSave = mutableListOf<GoalProgressEntity>()
         val acknowledge = mutableListOf<SyncAcknowledgeDto>()
@@ -325,10 +324,7 @@ class GoalProgressRepositoryImpl(
             } catch (e: Exception) {
                 failed++
                 log.error(
-                    "[REPO] 🔴 ❌ Bulk goal progress sync item → FAILED | id={} | reason={}",
-                    dto.id,
-                    e.message,
-                    e
+                    "[REPO] 🔴 ❌ Bulk goal progress sync item → FAILED | id={} | reason={}", dto.id, e.message, e
                 )
                 acknowledge += SyncAcknowledgeDto(dto.id, "FAILED", e.message)
             }
@@ -347,12 +343,8 @@ class GoalProgressRepositoryImpl(
 
         return ZikrPointBulkSyncResponseDto(
             summary = SyncSummaryDto(
-                syncedAt = now,
-                created = created,
-                updated = updated,
-                failed = failed
-            ),
-            acknowledge = acknowledge
+                syncedAt = now, created = created, updated = updated, failed = failed
+            ), acknowledge = acknowledge
         )
     }
 
@@ -363,8 +355,7 @@ class GoalProgressRepositoryImpl(
         val result = goalProgressJpaRepository.findUncompleted().map { it.toModel() }
 
         log.info(
-            "[REPO] ✅ 🔹 Fetch uncompleted goal progress → SUCCESS | count={}",
-            result.size
+            "[REPO] ✅ 🔹 Fetch uncompleted goal progress → SUCCESS | count={}", result.size
         )
         return result
     }
@@ -372,34 +363,25 @@ class GoalProgressRepositoryImpl(
     @Transactional(rollbackFor = [Exception::class])
     override fun incrementGoalProgress(id: String, level: Int): Boolean {
         log.info(
-            "[REPO] 🔹 🚀 Increment goal progress → START | id={} | level={}",
-            id,
-            level
+            "[REPO] 🔹 🚀 Increment goal progress → START | id={} | level={}", id, level
         )
 
         return try {
-            val updated =
-                goalProgressJpaRepository.incrementProgress(id.toUUID(), level, Instant.now()) > 0
+            val updated = goalProgressJpaRepository.incrementProgress(id.toUUID(), level, Instant.now()) > 0
 
             if (updated) {
                 log.info(
-                    "[REPO] ✅ 🔹 Increment goal progress → SUCCESS | id={} | level={}",
-                    id,
-                    level
+                    "[REPO] ✅ 🔹 Increment goal progress → SUCCESS | id={} | level={}", id, level
                 )
             } else {
                 log.warn(
-                    "[REPO] ⚠️ ⏭️ Increment goal progress → SKIPPED | reason=NotFound | id={}",
-                    id
+                    "[REPO] ⚠️ ⏭️ Increment goal progress → SKIPPED | reason=NotFound | id={}", id
                 )
             }
             updated
         } catch (e: Exception) {
             log.error(
-                "[REPO] 🔴 ❌ Increment goal progress → FAILED | id={} | reason={}",
-                id,
-                e.message,
-                e
+                "[REPO] 🔴 ❌ Increment goal progress → FAILED | id={} | reason={}", id, e.message, e
             )
             false
         }
@@ -408,32 +390,25 @@ class GoalProgressRepositoryImpl(
     @Transactional(rollbackFor = [Exception::class])
     override fun markGoalProgressAsComplete(id: String): Boolean {
         log.info(
-            "[REPO] 🔹 🚀 Mark goal progress complete → START | id={}",
-            id
+            "[REPO] 🔹 🚀 Mark goal progress complete → START | id={}", id
         )
 
         return try {
-            val updated =
-                goalProgressJpaRepository.markAsComplete(id.toUUID(), Instant.now()) > 0
+            val updated = goalProgressJpaRepository.markAsComplete(id.toUUID(), Instant.now()) > 0
 
             if (updated) {
                 log.info(
-                    "[REPO] ✅ 🔹 Mark goal progress complete → SUCCESS | id={}",
-                    id
+                    "[REPO] ✅ 🔹 Mark goal progress complete → SUCCESS | id={}", id
                 )
             } else {
                 log.warn(
-                    "[REPO] ⚠️ ⏭️ Mark goal progress complete → SKIPPED | reason=NotFound | id={}",
-                    id
+                    "[REPO] ⚠️ ⏭️ Mark goal progress complete → SKIPPED | reason=NotFound | id={}", id
                 )
             }
             updated
         } catch (e: Exception) {
             log.error(
-                "[REPO] 🔴 ❌ Mark goal progress complete → FAILED | id={} | reason={}",
-                id,
-                e.message,
-                e
+                "[REPO] 🔴 ❌ Mark goal progress complete → FAILED | id={} | reason={}", id, e.message, e
             )
             false
         }
@@ -445,11 +420,8 @@ class GoalProgressRepositoryImpl(
         val totalUsers = goalProgressJpaRepository.countDistinctActiveUsers()
 
         log.info(
-            "[REPO] ✅ 🔹 Count distinct users → SUCCESS | totalUsers={}",
-            totalUsers
+            "[REPO] ✅ 🔹 Count distinct users → SUCCESS | totalUsers={}", totalUsers
         )
         return totalUsers
     }
-
-
 }

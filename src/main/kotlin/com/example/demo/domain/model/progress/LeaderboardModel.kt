@@ -1,3 +1,5 @@
+package com.example.demo.domain.model.progress
+
 import com.example.demo.domain.model.auth.UserModel
 
 data class LeaderboardUserModel(

@@ -1,6 +1,6 @@
 package com.example.demo.data.repository.impl.progress
 
-import LeaderboardModel
+import com.example.demo.domain.model.progress.LeaderboardModel
 import com.example.demo.data.entity.ZikrPointEntity
 import com.example.demo.data.mapper.auth.toModel
 import com.example.demo.data.mapper.progress.toEntity
@@ -58,15 +58,15 @@ class ZikrPointRepositoryImpl(
     @Transactional(readOnly = true)
     override fun pointExists(progressId: String, userId: String, level: Int): Boolean =
         zikrPointJpaRepository.existsByProgressAndUserAndLevel(
-            progressId.toUUID(),
-            userId.toUUID(),
+            progressId,
+            userId,
             level
         )
 
     @Transactional(readOnly = true)
     override fun getZikrPointsSummary(userId: String): ZikrPointSummaryModel {
-        val referralPoints = zikrPointJpaRepository.getReferralPoints(userId.toUUID()) ?: 0
-        val zikrPoints = zikrPointJpaRepository.getZikrPoints(userId.toUUID()) ?: 0
+        val referralPoints = zikrPointJpaRepository.getReferralPoints(userId) ?: 0
+        val zikrPoints = zikrPointJpaRepository.getZikrPoints(userId) ?: 0
         val totalZikrPoints = zikrPointJpaRepository.getTotalZikrPoints() ?: 0
         return ZikrPointSummaryModel(referralPoints, zikrPoints, totalZikrPoints)
     }
@@ -79,33 +79,50 @@ class ZikrPointRepositoryImpl(
 
     @Transactional(readOnly = true)
     override fun getLeaderboard(): LeaderboardModel {
+
         val allPoints = zikrPointJpaRepository.findAllActive()
+
         val total = allPoints.sumOf { it.points }
-        val topTen = allPoints.groupBy { it.user }
+
+        val topTen = allPoints
+            .groupBy { it.user } // ✅ userId (String)
             .mapValues { it.value.sumOf { zp -> zp.points } }
             .entries
             .sortedByDescending { it.value }
             .take(10)
-            .mapIndexed { i, entry ->
-                LeaderboardModel.UserRank(i + 1, entry.key.toModel(), entry.value)
+            .mapIndexedNotNull { i, entry ->
+
+                val user = userJpaRepository.findById(entry.key.toUUID()).orElse(null)
+                    ?: return@mapIndexedNotNull null // ✅ skip if user not found
+
+                LeaderboardModel.UserRank(i + 1, user.toModel(), entry.value)
             }
+
         return LeaderboardModel(total, topTen)
     }
 
     @Transactional(readOnly = true)
     override fun getZikrLeaderboard(): LeaderboardModel {
+
         val zikrPoints = zikrPointJpaRepository.findAllActive()
             .filter { it.sourceType == "ZIKR" }
 
         val total = zikrPoints.sumOf { it.points }
-        val topTen = zikrPoints.groupBy { it.user }
+
+        val topTen = zikrPoints
+            .groupBy { it.user } // ✅ userId string
             .mapValues { it.value.sumOf { zp -> zp.points } }
             .entries
             .sortedByDescending { it.value }
             .take(10)
-            .mapIndexed { i, entry ->
-                LeaderboardModel.UserRank(i + 1, entry.key.toModel(), entry.value)
+            .mapIndexedNotNull { i, entry ->
+
+                val user = userJpaRepository.findById(entry.key.toUUID()).orElse(null)
+                    ?: return@mapIndexedNotNull null  // ✅ skip if user not found
+
+                LeaderboardModel.UserRank(i + 1, user.toModel(), entry.value)
             }
+
         return LeaderboardModel(total, topTen)
     }
 
@@ -138,23 +155,17 @@ class ZikrPointRepositoryImpl(
     @Transactional(rollbackFor = [Exception::class])
     override fun createZikrPoint(zikrPoint: ZikrPointModel): Boolean = try {
 
-        val user = userJpaRepository.findById(zikrPoint.userId.toUUID())
-            .orElseThrow { IllegalArgumentException("User not found: ${zikrPoint.userId}") }
-
-        val sourceUser = userJpaRepository.findById(zikrPoint.sourceUser.toUUID())
-            .orElseThrow { IllegalArgumentException("Source user not found: ${zikrPoint.sourceUser}") }
-
         val zikr = zikrPoint.zikrId?.let {
             zikrJpaRepository.findById(it.toUUID())
                 .orElseThrow { IllegalArgumentException("Zikr not found: $it") }
         }
 
-        zikrPoint.progressId?.let {
+        zikrPoint.progressId.let {
             zikrProgressJpaRepository.findById(it.toUUID())
                 .orElseThrow { IllegalArgumentException("Progress not found: $it") }
         }
 
-        val entity = zikrPoint.toEntity(user, sourceUser, zikr)
+        val entity = zikrPoint.toEntity(zikr)
         zikrPointJpaRepository.save(entity)
 
         syncLogRepository.updateSyncLog("zikr_point")
@@ -174,12 +185,10 @@ class ZikrPointRepositoryImpl(
         return try {
             if (!zikrPointJpaRepository.existsById(zikrPoint.id.toUUID())) return false
 
-            val user = userJpaRepository.getReferenceById(zikrPoint.userId.toUUID())
-            val sourceUser = userJpaRepository.getReferenceById(zikrPoint.sourceUser.toUUID())
             val zikr = zikrPoint.zikrId?.let { zikrJpaRepository.getReferenceById(it.toUUID()) }
-            zikrPoint.progressId?.let { zikrProgressJpaRepository.getReferenceById(it.toUUID()) }
+            zikrPoint.progressId.let { zikrProgressJpaRepository.getReferenceById(it.toUUID()) }
 
-            val entity = zikrPoint.toEntity(user, sourceUser, zikr)
+            val entity = zikrPoint.toEntity(zikr)
             zikrPointJpaRepository.save(entity)
             syncLogRepository.updateSyncLog("zikr_point")
 
@@ -212,6 +221,8 @@ class ZikrPointRepositoryImpl(
         false
     }
 
+
+
     @Transactional(rollbackFor = [Exception::class])
     override fun bulkPersistFromClient(
         items: List<ZikrPointSyncDto>
@@ -237,22 +248,10 @@ class ZikrPointRepositoryImpl(
                 .associateBy { it.id }
 
         /* -----------------------------
-           LOAD USERS (user + sourceUser)
-           ----------------------------- */
-        val userIds = items
-            .flatMap { listOfNotNull(it.userId, it.sourceUserId) }
-            .distinct()
-            .map { it.toUUID() }
-
-        val userMap =
-            userJpaRepository.findAllById(userIds)
-                .associateBy { it.id }
-
-        /* -----------------------------
            LOAD ZIKRS (optional relation)
            ----------------------------- */
         val zikrIds = items
-            .mapNotNull { it.zikrId }
+            .map { it.zikrId }
             .distinct()
             .map { it.toUUID() }
 
@@ -277,22 +276,15 @@ class ZikrPointRepositoryImpl(
            ----------------------------- */
         items.forEach { dto ->
             try {
-                val user = userMap[dto.userId.toUUID()]
-                    ?: throw IllegalStateException("User not found: ${dto.userId}")
 
-                val sourceUser = dto.sourceUserId
-                    ?.let { userMap[it.toUUID()] }
-                    ?: user
-
-                val zikr = dto.zikrId?.let {
-                    zikrMap[it.toUUID()]
-                        ?: throw IllegalStateException("Zikr not found: $it")
+                val zikr = dto.zikrId.let {
+                    zikrMap[it.toUUID()] ?: throw IllegalStateException("Zikr not found: $it")
                 }
 
                 val entity = ZikrPointEntity(
                     id = dto.id.toUUID(),
-                    user = user,
-                    sourceUser = sourceUser,
+                    user = dto.userId, // ✅ String
+                    sourceUser = dto.sourceUserId, // ✅ can be null
                     zikr = zikr,
                     progressType = dto.progressType,
                     progressId = dto.progressId,
@@ -359,5 +351,8 @@ class ZikrPointRepositoryImpl(
             acknowledge = acknowledge
         )
     }
+
+
+
 
 }

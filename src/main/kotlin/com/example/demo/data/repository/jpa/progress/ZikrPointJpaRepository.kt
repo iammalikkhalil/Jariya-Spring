@@ -8,36 +8,35 @@ import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Repository
 interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
 
-    // ✅ JOIN FETCH to load related entities (no N+1, 1 SQL query)
-    @Query("""
+    @Query(
+        """
         SELECT zp
         FROM ZikrPointEntity zp
-        JOIN FETCH zp.user u
         LEFT JOIN FETCH zp.zikr z
-        JOIN FETCH zp.sourceUser su
         WHERE zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
-    """)
+        """
+    )
     fun findAllActive(): List<ZikrPointEntity>
 
-    @Query("""
+    @Query(
+        """
         SELECT zp
         FROM ZikrPointEntity zp
-        JOIN FETCH zp.user u
         LEFT JOIN FETCH zp.zikr z
-        JOIN FETCH zp.sourceUser su
         WHERE zp.updatedAt > :updatedAt
           AND zp.isDeleted = false
         ORDER BY zp.updatedAt DESC
-    """)
+        """
+    )
     fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<ZikrPointEntity>
 
-    // ✅ Boolean existence check (native for speed)
+    // ✅ FIX: userId is String now
     @Query(
         value = """
         SELECT CASE WHEN COUNT(*) > 0 THEN TRUE ELSE FALSE END
@@ -50,12 +49,12 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         nativeQuery = true
     )
     fun existsByProgressAndUserAndLevel(
-        @Param("progressId") progressId: UUID,
-        @Param("userId") userId: UUID,
+        @Param("progressId") progressId: String,
+        @Param("userId") userId: String,
         @Param("level") level: Int
     ): Boolean
 
-    // ✅ Aggregates remain native (faster)
+    // ✅ FIX: userId is String now
     @Query(
         value = """
         SELECT COALESCE(SUM(points), 0)
@@ -64,8 +63,9 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         """,
         nativeQuery = true
     )
-    fun getReferralPoints(@Param("userId") userId: UUID): Int?
+    fun getReferralPoints(@Param("userId") userId: String): Int?
 
+    // ✅ FIX: userId is String now
     @Query(
         value = """
         SELECT COALESCE(SUM(points), 0)
@@ -74,7 +74,7 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         """,
         nativeQuery = true
     )
-    fun getZikrPoints(@Param("userId") userId: UUID): Int?
+    fun getZikrPoints(@Param("userId") userId: String): Int?
 
     @Query(
         value = """
@@ -86,7 +86,6 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
     )
     fun getTotalZikrPoints(): Int?
 
-    // ✅ Native for soft delete
     @Modifying
     @Query(
         value = "UPDATE zikr_points SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
@@ -94,23 +93,21 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
     )
     fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
 
-
-
     @Query(
         value = """
         SELECT
-    gp.goal_id AS goalId,
-    COALESCE(SUM(zp.points), 0) AS earnedHasanats
-    FROM zikr_points zp
-    INNER JOIN goal_progress gp
-    ON gp.id = zp.progress_id::uuid
-    AND zp.progress_id ~ '^[0-9a-fA-F-]{36}${'$'}'
-    WHERE zp.progress_type = 'goal'
-    AND zp.is_deleted = false
-    AND gp.is_deleted = false
-    AND gp.goal_id IS NOT NULL
-    GROUP BY gp.goal_id;    
-    """,
+            gp.goal_id AS goalId,
+            COALESCE(SUM(zp.points), 0) AS earnedHasanats
+        FROM zikr_points zp
+        INNER JOIN goal_progress gp
+            ON gp.id = zp.progress_id::uuid
+            AND zp.progress_id ~ '^[0-9a-fA-F-]{36}${'$'}'
+        WHERE zp.progress_type = 'goal'
+          AND zp.is_deleted = false
+          AND gp.is_deleted = false
+          AND gp.goal_id IS NOT NULL
+        GROUP BY gp.goal_id
+        """,
         nativeQuery = true
     )
     fun getGoalsStatsGrouped(): List<GoalStatsProjection>
@@ -121,9 +118,30 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
         FROM zikr_points
         WHERE is_deleted = false
           AND user_id IS NOT NULL
-    """,
+        """,
         nativeQuery = true
     )
     fun countDistinctActiveUsers(): Long
+
+
+
+    @Query(
+        value = """
+        SELECT COUNT(*) FROM (
+            SELECT user_id FROM zikr_points 
+            WHERE is_deleted = false 
+            AND user_id ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}${'$'}'
+            UNION
+            SELECT source_user FROM zikr_points 
+            WHERE source_user IS NOT NULL 
+            AND is_deleted = false
+            AND source_user ~ '^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}${'$'}'
+        ) AS all_users
+    """,
+        nativeQuery = true
+    )
+    fun countDistinctUsers(): Long
+
+
 
 }

@@ -22,9 +22,8 @@ class GoalProgressEntity(
     @Column(name = "id", nullable = false, updatable = false)
     var id: UUID,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id")
-    var user: UserEntity?,
+    @Column(name = "user_id", nullable = true)
+    var user: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")

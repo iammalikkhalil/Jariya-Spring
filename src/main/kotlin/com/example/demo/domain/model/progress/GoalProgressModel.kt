@@ -8,7 +8,7 @@ data class GoalProgressModel(
 
     val id: String,
 
-    val userId: String,
+    val userId: String?,
     val zikrId: String,
     val goalId: String,
     val deviceId: String?,

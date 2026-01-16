@@ -21,9 +21,8 @@ class ZikrPointEntity(
     @Column(name = "id", nullable = false, updatable = false)
     var id: UUID,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", referencedColumnName = "id", nullable = false)
-    var user: UserEntity,
+    @Column(name = "user_id", nullable = false)
+    var user: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "zikr_id", referencedColumnName = "id")
@@ -44,9 +43,9 @@ class ZikrPointEntity(
     @Column(name = "source_type", nullable = false, length = 50)
     var sourceType: String,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "source_user", referencedColumnName = "id", nullable = false)
-    var sourceUser: UserEntity,
+    @Column(name = "source_user", nullable = true)
+    var sourceUser: String?,
+
 
     @Column(name = "created_at", nullable = false)
     var createdAt: Instant,

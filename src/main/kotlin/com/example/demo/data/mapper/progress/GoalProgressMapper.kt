@@ -14,7 +14,7 @@ import java.util.*
 
 fun GoalProgressEntity.toModel(): GoalProgressModel = GoalProgressModel(
     id = id.toString(),
-    userId = user?.id.toString(),
+    userId = user,
     zikrId = zikr?.id?.toString() ?: "",
     goalId = goal?.id?.toString() ?: "",
     deviceId = deviceId?.toString(),
@@ -33,12 +33,11 @@ fun GoalProgressEntity.toModel(): GoalProgressModel = GoalProgressModel(
 )
 
 fun GoalProgressModel.toEntity(
-    userEntity: UserEntity,
     zikrEntity: ZikrEntity?,
     goalEntity: ZikrGoalEntity?,
 ): GoalProgressEntity = GoalProgressEntity(
     id = UUID.fromString(id),
-    user = userEntity,
+    user = userId,
     zikr = zikrEntity,
     goal = goalEntity,
     deviceId = deviceId?.let { UUID.fromString(it) },
@@ -70,8 +69,7 @@ fun GoalProgressSyncDto.toEntity(
         user = null,
     )
 
-    // USER
-    entity.user = existing?.user ?: userId?.let { UserEntity(it.toUUID()) }
+    entity.user = existing?.user
 
     // ZIKR
     entity.zikr = existing?.zikr ?: zikrId?.let { ZikrEntity(it.toUUID()) }

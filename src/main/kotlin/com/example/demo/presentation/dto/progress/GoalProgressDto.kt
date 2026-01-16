@@ -9,7 +9,7 @@ import com.example.demo.domain.model.progress.ZikrProgressModel
 
 data class GoalProgressDto (
     val id: String,
-    val userId: String,
+    val userId: String?,
     val zikrId: String,
     val goalId: String,
     val deviceId: String?,
