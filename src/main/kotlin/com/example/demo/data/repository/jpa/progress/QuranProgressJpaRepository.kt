@@ -1,54 +1,44 @@
 package com.example.demo.data.repository.jpa.progress
 
-import com.example.demo.data.entity.ZikrProgressEntity
+import com.example.demo.data.entity.QuranProgressEntity
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
 import org.springframework.stereotype.Repository
 import java.time.Instant
-import java.util.*
+import java.util.UUID
 
 @Repository
-interface ZikrProgressJpaRepository : JpaRepository<ZikrProgressEntity, UUID> {
+interface QuranProgressJpaRepository : JpaRepository<QuranProgressEntity, UUID> {
 
-    @Query("""
-        SELECT zp
-        FROM ZikrProgressEntity zp
-        LEFT JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """)
-    fun findAllActive(): List<ZikrProgressEntity>
+    @Query(
+        """
+        SELECT qp
+        FROM QuranProgressEntity qp
+        WHERE qp.isDeleted = false
+        ORDER BY qp.updatedAt DESC
+        """
+    )
+    fun findAllActive(): List<QuranProgressEntity>
 
-    @Query("""
-        SELECT zp
-        FROM ZikrProgressEntity zp
-        LEFT JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.isCompleted = false
-          AND zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """)
-    fun findUncompleted(): List<ZikrProgressEntity>
 
-    @Query("""
-        SELECT zp
-        FROM ZikrProgressEntity zp
-        LEFT JOIN FETCH zp.user u
-        LEFT JOIN FETCH zp.zikr z
-        WHERE zp.updatedAt > :updatedAt
-          AND zp.isDeleted = false
-        ORDER BY zp.updatedAt DESC
-    """)
-    fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<ZikrProgressEntity>
+    @Query(
+        """
+        SELECT qp
+        FROM QuranProgressEntity qp
+        WHERE qp.isCompleted = false
+          AND qp.isDeleted = false
+        ORDER BY qp.updatedAt DESC
+        """
+    )
+    fun findUncompleted(): List<QuranProgressEntity>
 
-    // ✅ FIXED: updated_at added
+
     @Modifying
     @Query(
         value = """
-        UPDATE zikr_progress
+        UPDATE quran_progress
         SET is_deleted = true,
             deleted_at = :deletedAt,
             updated_at = :deletedAt
@@ -61,10 +51,11 @@ interface ZikrProgressJpaRepository : JpaRepository<ZikrProgressEntity, UUID> {
         @Param("deletedAt") deletedAt: Instant
     ): Int
 
+
     @Modifying
     @Query(
         value = """
-        UPDATE zikr_progress
+        UPDATE quran_progress
         SET processed_levels = :level,
             is_started = true,
             updated_at = :updatedAt
@@ -78,10 +69,11 @@ interface ZikrProgressJpaRepository : JpaRepository<ZikrProgressEntity, UUID> {
         @Param("updatedAt") updatedAt: Instant
     ): Int
 
+
     @Modifying
     @Query(
         value = """
-        UPDATE zikr_progress
+        UPDATE quran_progress
         SET is_completed = true,
             synced_at = :now,
             updated_at = :now

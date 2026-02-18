@@ -20,8 +20,11 @@ class ZikrPointSyncController(
         @Valid @RequestBody request: ZikrPointBulkSyncRequestDto
     ): ApiResponse<ZikrPointBulkSyncResponseDto> {
 
+
         request.items.forEachIndexed { index, item ->
-            Log.info("📌 Item[$index] sourceUserId=${item.sourceUserId}")
+            Log.info(
+                "📌 ZikrPoint Item[$index] → id=${item.id}, zikrId=${item.zikrId}, userId=${item.userId}, sourceUserId=${item.sourceUserId}"
+            )
         }
 
         val result = zikrPointSyncService.bulkPersistFromClient(request.items)

@@ -21,6 +21,7 @@ import com.example.demo.presentation.dto.sync.SyncSummaryDto
 import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncResponseDto
 import com.example.demo.presentation.dto.sync.ZikrPointSyncDto
 import com.example.demo.presentation.dto.websockets.GoalStatsDto
+import com.example.demo.utils.toUUIDOrNull
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
@@ -277,9 +278,9 @@ class ZikrPointRepositoryImpl(
         items.forEach { dto ->
             try {
 
-                val zikr = dto.zikrId.let {
-                    zikrMap[it.toUUID()] ?: throw IllegalStateException("Zikr not found: $it")
-                }
+                val zikr = dto.zikrId
+                    .toUUIDOrNull()
+                    ?.let { zikrMap[it] }
 
                 val entity = ZikrPointEntity(
                     id = dto.id.toUUID(),
@@ -351,8 +352,4 @@ class ZikrPointRepositoryImpl(
             acknowledge = acknowledge
         )
     }
-
-
-
-
 }

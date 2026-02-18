@@ -1,37 +1,42 @@
-package com.example.demo.presentation.dto.progress
+package com.example.demo.domain.model.progress
 
+
+import com.example.demo.presentation.dto.sync.QuranProgressSyncDto
 import java.time.Instant
+import kotlin.Int
 
-import com.example.demo.domain.model.progress.ZikrProgressModel
+data class QuranProgressModel(
 
-
-
-data class ZikrProgressDto (
     val id: String,
+
     val userId: String,
-    val zikrId: String,
+    val ayahId: Int,
+    val surahId: Int? = null,
     val deviceId: String?,
     val sessionId: String?,
     val source: String?,
-    val count: Int,
+
     val charCount: Int = 1,
+    val count: Int,
     val processedLevels: Int?,
+
     val isStarted: Boolean,
     val isCompleted: Boolean,
-    val isDeleted: Boolean = false,
+    val isDeleted: Boolean,
+
     val createdAt: Instant,
     val updatedAt: Instant,
-    val deletedAt: Instant? = null,
-    val syncedAt: Instant? = null,
+    val deletedAt: Instant?,
+    val syncedAt: Instant?
 )
 
-
-fun ZikrProgressDto.toDomain()  = ZikrProgressModel(
+fun QuranProgressModel.toDto()  = QuranProgressSyncDto(
     id = this.id,
     userId = this.userId,
-    zikrId = this.zikrId,
-    count = this.count,
-    charCount = this.charCount,
+    ayahId = this.ayahId.toString(),
+    surahId = this.surahId?.toString(),
+    count = this.count.toString(),
+    charCount = this.charCount.toString(),
     deviceId = this.deviceId,
     sessionId = this.sessionId,
     source = this.source,

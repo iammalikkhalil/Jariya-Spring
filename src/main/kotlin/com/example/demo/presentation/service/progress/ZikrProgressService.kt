@@ -42,6 +42,7 @@ class ZikrProgressService(
             processedLevels = body.processedLevels,
             isStarted = body.isStarted,
             syncedAt = body.syncedAt,
+            charCount = body.count,
         )
         return zikrProgressRepo.createZikrProgress(dto.toDomain())
     }
@@ -63,6 +64,7 @@ class ZikrProgressService(
             processedLevels = body.processedLevels,
             isStarted = body.isStarted,
             syncedAt = body.syncedAt,
+            charCount = body.count,
         )
         return zikrProgressRepo.updateZikrProgress(dto.toDomain())
     }

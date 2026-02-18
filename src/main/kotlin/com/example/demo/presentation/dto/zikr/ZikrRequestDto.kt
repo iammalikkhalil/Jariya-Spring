@@ -120,6 +120,13 @@ data class ZikrCollectionDtoRequest(
 // ZIKR COLLECTION MAP DTO
 // ---------------------------
 
+data class GetByIdRequestDto(
+    @field:NotBlank(message = "id is required")
+    val id: String
+)
+
+
+
 data class ZikrCollectionMapDtoRequest(
 
     val id: String? = null,

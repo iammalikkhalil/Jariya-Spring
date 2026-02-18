@@ -2,6 +2,7 @@ package com.example.demo.domain.model.progress
 
 import com.example.demo.presentation.dto.progress.ZikrProgressDto
 import java.time.Instant
+import kotlin.Int
 
 data class ZikrProgressModel(
 
@@ -13,6 +14,7 @@ data class ZikrProgressModel(
     val sessionId: String?,
     val source: String?,
 
+    val charCount: Int = 0,
     val count: Int,
     val processedLevels: Int?,
 
@@ -31,6 +33,7 @@ fun ZikrProgressModel.toDto()  = ZikrProgressDto(
     userId = this.userId,
     zikrId = this.zikrId,
     count = this.count,
+    charCount = this.charCount,
     deviceId = this.deviceId,
     sessionId = this.sessionId,
     source = this.source,

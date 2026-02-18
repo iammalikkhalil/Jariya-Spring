@@ -92,8 +92,8 @@
 
         stompClient = new StompJs.Client({
             webSocketFactory: () =>
-                // new WebSocket("wss://api.jariya.net/ws"),
-                new WebSocket("ws://localhost:8084/ws"),
+                new WebSocket("wss://api.jariya.net/ws"),
+                // new WebSocket("ws://localhost:8084/ws"),
 
             reconnectDelay: 5000,
             heartbeatIncoming: 4000,

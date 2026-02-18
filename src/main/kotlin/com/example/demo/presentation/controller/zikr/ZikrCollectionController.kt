@@ -1,6 +1,7 @@
 package com.example.demo.presentation.controller.zikr
 
 import com.example.demo.presentation.dto.ApiResponse
+import com.example.demo.presentation.dto.zikr.GetByIdRequestDto
 import com.example.demo.presentation.dto.zikr.TimeDto
 import com.example.demo.presentation.dto.zikr.ZikrCollectionDtoRequest
 import com.example.demo.presentation.service.zikr.ZikrCollectionService
@@ -30,8 +31,8 @@ class ZikrCollectionController(
     }
 
     @PostMapping("/getById")
-    fun getZikrCollectionById(@Valid @RequestBody body: ZikrCollectionDtoRequest): ResponseEntity<ApiResponse<Any>> {
-        val record = zikrCollectionService.getZikrCollectionById(body.id!!)
+    fun getZikrCollectionById(@Valid @RequestBody body: GetByIdRequestDto): ResponseEntity<ApiResponse<Any>> {
+        val record = zikrCollectionService.getZikrCollectionById(body.id)
 
         return if (record != null) {
             ResponseEntity.ok(

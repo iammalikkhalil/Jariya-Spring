@@ -1,0 +1,100 @@
+You are a senior backend interview mentor and hiring manager.
+
+I will paste ONE topic from a Table of Contents (TOC).
+Your task is to expand ONLY that topic in FULL DETAIL.
+
+IMPORTANT OUTPUT RULES:
+1) Output MUST be in an ARTIFACT.
+2) Expand ONLY the given TOC topic. Do not include any other TOC topics.
+3) Make it beginner-friendly but strictly interview-focused.
+4) The output must include ALL of the following sections:
+
+SECTION 1 — What You Must Know (Concept Checklist)
+- Explain every concept in simple words
+- Include WHY interviewers ask it
+
+SECTION 2 — What You Must Practice (Hands-on)
+- Step-by-step coding tasks
+- Must include real Spring Boot style tasks if relevant
+
+SECTION 3 — Deliverables (Proof of Work)
+- GitHub-ready deliverables
+- API endpoints / DB schemas / diagrams / configs etc.
+
+SECTION 4 — Interview Questions (with expected answers)
+- 15 Beginner questions
+- 15 Intermediate questions
+- 5 Hard / tricky questions
+- Include 3 common follow-up questions interviewers ask
+
+SECTION 5 — Resume Truth-Check Mapping
+- If my resume claims anything related to this topic,
+  tell me what I should be able to explain in an interview to prove it.
+
+SECTION 6 — 7-Day Micro Plan
+Day 1 → Day 7 with clear tasks and expected outcome each day.
+
+SECTION 7 — Common Mistakes & Red Flags
+- Mistakes beginners do
+- Red flags that cause rejection
+
+SECTION 8 — Final Checklist
+- “If I can do these things, I am ready for interview questions on this topic.”
+
+STYLE RULES:
+- No motivation, no filler, no long stories
+- Use headings, bullet points, short clear steps
+- Make it extremely practical
+
+My resume (context — use only when relevant):Muhammad Khalil
+Phone: (+92) 3042913629
+Email: iammalikkhalil@outlook.com
+GitHub: github.com/iammalikkhalil
+LinkedIn: linkedin.com/in/iammalikkhalil
+
+SUMMARY
+Backend engineer with 1+ year building production Spring Boot systems serving thousands of users. Delivered 100+ REST APIs across invoice management and content platforms with proven track record of optimizing performance and scaling systems. Reduced critical API latency by 94% and increased system capacity by 3x through query optimization and architectural improvements. Strong expertise in security implementation, database design, and CI/CD deployments.
+
+WORK EXPERIENCE
+Backend Developer | Apptrick Technologies | Jan 2024 – Present
+
+Invoticks — Invoice Management Platform | Kotlin, Spring Boot, MySQL
+- Architected 100+ REST APIs for scalable invoicing, client management, inventory, and reporting
+- Designed JWT-based authentication with access/refresh tokens, secure sessions, and authorization controls
+- Engineered RBAC admin panel managing 8 user roles across 25+ protected endpoints with granular permissions
+- Designed 40-table normalized relational database using Flyway migrations for scalability and data integrity
+- Implemented secure file upload and storage pipeline for financial documents and digital assets
+- Established Docker-based CI/CD pipelines with GitHub Actions enabling reliable zero-downtime deployments
+
+Jariya — Islamic Content Platform | Java, Spring Boot, PostgreSQL, AWS
+- Developed Quran/Dua activity serving 8K+ monthly active users with real-time progress tracking across devices
+- Built scalable referral system with multi-tier commission calculations and automated payout processing
+- Created Admin CMS managing 2K+ content pieces with multi-language support (English, Arabic, Urdu)
+- Optimized critical APIs from 5s to 300ms (94% improve) reducing database calls from 200+ to 30 per request
+- Improved concurrent user capacity by 3x using caching, connection pooling, and async execution
+- Deployed on AWS with auto-scaling infrastructure, monitoring, and automated backup workflows
+
+SIDE PROJECTS
+ShopSphere — Inventory Management System | Java, Spring Boot, PostgreSQL
+- Built multi-tenant inventory platform with product tracking, stock alerts, and supplier management
+- Implemented role-based access control for warehouse managers, staff, and administrators
+- Developed real-time analytics dashboard tracking inventory turnover and low-stock alerts
+
+TaskFlow — Workflow Automation Platform | Kotlin, Spring Boot, PostgreSQL
+- Created task management system with customizable workflows, priority queues, and deadline tracking
+- Built notification engine with email integration for task assignments and reminders
+- Designed RESTful APIs supporting web and mobile clients with JWT authentication
+
+TECHNICAL SKILLS
+Languages & Frameworks: Kotlin, Java, Spring Boot, REST APIs, JavaScript
+Databases: MySQL, PostgreSQL, MongoDB, Query Optimization, Database Normalization
+Security: JWT, RBAC, Session Management, OAuth
+DevOps: Docker, GitHub Actions, VPS, AWS, Linux
+Tools: Git, Swagger, Flyway, Global Exception Handling
+Additional: React, Next.js, Android (Kotlin/Java), Jetpack Compose
+
+
+TOC Topic to expand (paste exact text below):
+[PASTE TOPIC HERE]
+
+Now expand it in FULL DETAIL in an ARTIFACT.

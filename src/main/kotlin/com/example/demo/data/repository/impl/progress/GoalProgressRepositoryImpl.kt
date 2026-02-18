@@ -155,7 +155,7 @@ class GoalProgressRepositoryImpl(
                     }
 
                     zikrPointJpaRepository.saveAll(points)
-                    syncLogRepository.updateSyncLog("zikr_progress")
+                    syncLogRepository.updateSyncLog("goal_progress")
 
                     log.info(
                         "[REPO] ✅ 🔹 Points created | userId={} | pointsCount={}",
@@ -234,7 +234,7 @@ class GoalProgressRepositoryImpl(
             }
 
             goalProgressJpaRepository.save(goalProgress.toEntity(zikr, goal))
-            syncLogRepository.updateSyncLog("zikr_progress")
+            syncLogRepository.updateSyncLog("goal_progress")
 
             log.info(
                 "[REPO] ✅ 🔹 Update goal progress → SUCCESS | id={}", goalProgress.id
@@ -258,7 +258,7 @@ class GoalProgressRepositoryImpl(
         return try {
             val deleted = goalProgressJpaRepository.markAsDeleted(id.toUUID(), Instant.now())
             if (deleted > 0) {
-                syncLogRepository.updateSyncLog("zikr_progress")
+                syncLogRepository.updateSyncLog("goal_progress")
                 log.info(
                     "[REPO] ✅ 🔹 Delete goal progress → SUCCESS | id={}", id
                 )

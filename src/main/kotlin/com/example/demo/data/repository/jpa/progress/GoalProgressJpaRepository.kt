@@ -24,6 +24,7 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
     )
     fun findAllActive(): List<GoalProgressEntity>
 
+
     @Query(
         """
         SELECT gp
@@ -50,13 +51,25 @@ interface GoalProgressJpaRepository : JpaRepository<GoalProgressEntity, UUID> {
     )
     fun findUpdatedAfter(@Param("updatedAt") updatedAt: Instant): List<GoalProgressEntity>
 
-    // ✅ FIX: Wrong table name in your query (you wrote zikr_progress)
+
     @Modifying
     @Query(
-        value = "UPDATE goal_progress SET is_deleted = true, deleted_at = :deletedAt WHERE id = :id",
+        value = """
+    UPDATE goal_progress
+    SET is_deleted = true,
+        deleted_at = :deletedAt,
+        updated_at = :deletedAt
+    WHERE id = :id
+    """,
         nativeQuery = true
     )
-    fun markAsDeleted(@Param("id") id: UUID, @Param("deletedAt") deletedAt: Instant): Int
+    fun markAsDeleted(
+        @Param("id") id: UUID,
+        @Param("deletedAt") deletedAt: Instant
+    ): Int
+
+
+
 
     // ✅ FIX: Wrong table name in your query (you wrote zikr_progress)
     @Modifying

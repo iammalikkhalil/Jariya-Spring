@@ -10,12 +10,10 @@ import jakarta.validation.constraints.Size
 import java.time.Instant
 
 
-
 data class SyncLogDto(
     val tName: String,
     val updatedAt: Instant,
 )
-
 
 data class ZikrPointBulkSyncRequestDto(
     @field:Size(min = 1, message = "items list must contain at least one item")
@@ -29,6 +27,17 @@ data class GoalProgressBulkSyncRequestDto(
     val items: List<GoalProgressSyncDto>
 )
 
+data class ZikrProgressBulkSyncRequestDto(
+    @field:Size(min = 1, message = "items list must contain at least one item")
+    @field:Valid
+    val items: List<ZikrProgressSyncDto>
+)
+
+data class QuranProgressBulkSyncRequestDto(
+    @field:Size(min = 1, message = "items list must contain at least one item")
+    @field:Valid
+    val items: List<QuranProgressSyncDto>
+)
 
 data class SyncSummaryDto(
     val syncedAt: Instant = Instant.now(),
@@ -96,38 +105,70 @@ data class GoalProgressSyncDto(
 
     @field:NotBlank(message = "id is required")
     val id: String,
-
     val userId: String?,
-
     val zikrId: String?,
-
     val goalId: String?,
-
     val sessionId: String?,
-
     val deviceId: String?,
-
     val type: String?,
-
     val countValue: String?,
-
     val count: String?,
-
     val charCount: String?,
-
     val levels: String?,
-
     val isStarted: String?,
-
     val isCompleted: String?,
-
     val syncedAt: String?,
-
     val createdAt: Long?,
-
     val updatedAt: Long?,
-
     val isDeleted: Boolean?,
-
     val syncStatus: String?
+)
+
+data class ZikrProgressSyncDto (
+    @field:NotBlank(message = "id is required")
+    val id: String,
+    val userId: String?,
+    @field:NotBlank(message = "zikrId is required")
+    val zikrId: String,
+    val deviceId: String?,
+    val sessionId: String?,
+    val source: String?,
+    val charCount: String?,
+    @field:NotBlank(message = "count is required")
+    val count: String,
+    val processedLevels: Int?,
+    val isStarted: Boolean = false,
+    val isCompleted: Boolean = false,
+    val isDeleted: Boolean = false,
+    @field:NotNull(message = "createdAt is required")
+    val createdAt: Instant,
+    @field:NotNull(message = "updatedAt is required")
+    val updatedAt: Instant,
+    val deletedAt: Instant? = null,
+    val syncedAt: Instant? = null,
+)
+
+data class QuranProgressSyncDto (
+    @field:NotBlank(message = "id is required")
+    val id: String,
+    val userId: String?,
+    val surahId: String?,
+    @field:NotBlank(message = "ayahId is required")
+    val ayahId: String,
+    val deviceId: String?,
+    val sessionId: String?,
+    val source: String?,
+    val charCount: String?,
+    @field:NotBlank(message = "count is required")
+    val count: String,
+    val processedLevels: Int?,
+    val isStarted: Boolean = false,
+    val isCompleted: Boolean = false,
+    val isDeleted: Boolean = false,
+    @field:NotNull(message = "createdAt is required")
+    val createdAt: Instant,
+    @field:NotNull(message = "updatedAt is required")
+    val updatedAt: Instant,
+    val deletedAt: Instant? = null,
+    val syncedAt: Instant? = null,
 )

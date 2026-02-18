@@ -6,16 +6,17 @@ import java.util.UUID
 
 @Entity
 @Table(
-    name = "zikr_progress",
+    name = "quran_progress",
     indexes = [
-        Index(name = "idx_zikr_progress_user", columnList = "user_id"),
-        Index(name = "idx_zikr_progress_zikr", columnList = "zikr_id"),
-        Index(name = "idx_zikr_progress_deleted", columnList = "is_deleted"),
-        Index(name = "idx_zikr_progress_started", columnList = "is_started"),
-        Index(name = "idx_zikr_progress_completed", columnList = "is_completed")
+        Index(name = "idx_quran_progress_user", columnList = "user_id"),
+        Index(name = "idx_quran_progress_surah", columnList = "surah_id"),
+        Index(name = "idx_quran_progress_ayah", columnList = "ayah_id"),
+        Index(name = "idx_quran_progress_deleted", columnList = "is_deleted"),
+        Index(name = "idx_quran_progress_started", columnList = "is_started"),
+        Index(name = "idx_quran_progress_completed", columnList = "is_completed")
     ]
 )
-class ZikrProgressEntity(
+class QuranProgressEntity(
 
     @Id
     @Column(name = "id", nullable = false, updatable = false)
@@ -24,13 +25,11 @@ class ZikrProgressEntity(
     @Column(name = "user_id", nullable = true)
     var user: String? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "zikr_id", referencedColumnName = "id")
-    var zikr: ZikrEntity? = null,
+    @Column(name = "surah_id", nullable = true)
+    var surahId: Int? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "collection_id", referencedColumnName = "id")
-    var collection: ZikrCollectionEntity? = null,
+    @Column(name = "ayah_id")
+    var ayahId: Int,
 
     @Column(name = "device_id")
     var deviceId: UUID? = null,
@@ -44,8 +43,8 @@ class ZikrProgressEntity(
     @Column(name = "count", nullable = false)
     var count: Int,
 
-    @Column(name = "char_count", nullable = false)
-    var charCount: Int,
+    @Column(name = "char_count", nullable = true)
+    var charCount: Int? = 0,
 
     @Column(name = "processed_levels")
     var processedLevels: Int? = null,
