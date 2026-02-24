@@ -2,6 +2,7 @@ package com.example.demo.domain.repository.zikr
 
 import com.example.demo.domain.model.zikr.ZikrGoalModel
 import java.time.Instant
+import java.util.UUID
 
 interface ZikrGoalRepository {
 
@@ -16,4 +17,6 @@ interface ZikrGoalRepository {
     fun deleteGoal(id: String): Boolean
 
     fun getUpdatedGoals(updatedAt: Instant): List<ZikrGoalModel>
+
+    fun bulkUpdateGoalTargetValues(updates: Map<UUID, Long>): Int
 }

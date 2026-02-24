@@ -29,7 +29,7 @@ data class ZikrGoalDto(
     val type: String? = null,
 
     @field:Min(value = 1, message = "Target value must be at least 1")
-    val targetValue: Int = 1,
+    val targetValue: Long = 1,
 
     @field:Min(value = 1, message = "Target value must be at least 1")
     val globalTargetValue: Long = 1,

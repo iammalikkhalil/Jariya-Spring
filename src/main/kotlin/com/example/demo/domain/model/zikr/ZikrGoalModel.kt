@@ -14,7 +14,7 @@ data class ZikrGoalModel(
     val arabicText: String?,
 
     val type: GoalType?,
-    val targetValue: Int,
+    val targetValue: Long,
     val globalTargetValue: Long,
     val unit: String?,
 

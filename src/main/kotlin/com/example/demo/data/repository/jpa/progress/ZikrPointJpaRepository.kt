@@ -2,6 +2,7 @@ package com.example.demo.data.repository.jpa.progress
 
 import com.example.demo.data.entity.ZikrPointEntity
 import com.example.demo.domain.model.zikr.GoalStatsProjection
+import com.example.demo.domain.projection.points.ZikrGoalPointsAggregateSummaryProjection
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Modifying
 import org.springframework.data.jpa.repository.Query
@@ -142,6 +143,26 @@ interface ZikrPointJpaRepository : JpaRepository<ZikrPointEntity, UUID> {
     )
     fun countDistinctUsers(): Long
 
+    @Query(
+        value = """
+        SELECT
+            gp.goal_id                      AS goalId,
+            COALESCE(SUM(zp.points), 0)     AS totalPoints,
+            MAX(zg.target_value)            AS originalTargetCount
+        FROM goal_progress gp
+        INNER JOIN zikr_points zp
+            ON zp.progress_id = CAST(gp.id AS VARCHAR)
+        INNER JOIN zikr_goal zg
+            ON zg.id = gp.goal_id
+        WHERE gp.is_deleted = false
+          AND zp.is_deleted = false
+          AND zg.is_deleted = false
+        GROUP BY gp.goal_id
+    """,
+        nativeQuery = true
+    )
+    fun findAggregatedZikrGoalPointsWithOriginalTargetSummary():
+            List<ZikrGoalPointsAggregateSummaryProjection>
 
 
 }

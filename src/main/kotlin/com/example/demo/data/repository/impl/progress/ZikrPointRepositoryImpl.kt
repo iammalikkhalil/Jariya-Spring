@@ -16,6 +16,7 @@ import com.example.demo.domain.repository.progress.ZikrPointRepository
 import com.example.demo.domain.repository.sync.SyncLogRepository
 import com.example.demo.infrastructure.utils.Log
 import com.example.demo.infrastructure.utils.toUUID
+import com.example.demo.presentation.dto.progress.ZikrGoalPointsAggregateWithTargetSummary
 import com.example.demo.presentation.dto.sync.SyncAcknowledgeDto
 import com.example.demo.presentation.dto.sync.SyncSummaryDto
 import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncResponseDto
@@ -352,4 +353,25 @@ class ZikrPointRepositoryImpl(
             acknowledge = acknowledge
         )
     }
+
+
+    @Transactional(readOnly = true)
+    override fun getAggregatedZikrGoalPointsSummary():
+            List<ZikrGoalPointsAggregateWithTargetSummary> {
+
+        val result =
+            zikrPointJpaRepository
+                .findAggregatedZikrGoalPointsWithOriginalTargetSummary()
+
+        return result.map {
+            ZikrGoalPointsAggregateWithTargetSummary(
+                goalId = it.getGoalId(),
+                totalPoints = it.getTotalPoints(),
+                originalTargetCount = it.getOriginalTargetCount()
+            )
+        }
+    }
+
+
+
 }

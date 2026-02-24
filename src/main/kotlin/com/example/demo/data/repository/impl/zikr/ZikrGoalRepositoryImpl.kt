@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.stereotype.Repository
 import org.springframework.transaction.annotation.Transactional
 import java.time.Instant
+import java.util.UUID
 
 @Repository
 class ZikrGoalRepositoryImpl(
@@ -114,6 +115,32 @@ class ZikrGoalRepositoryImpl(
         Log.info("✅ getUpdatedGoals fetched ${result.size} records in ${System.currentTimeMillis() - start} ms")
         return result
     }
+
+    @Transactional
+    override fun bulkUpdateGoalTargetValues(
+        updates: Map<UUID, Long>
+    ): Int {
+
+        var totalUpdated = 0
+        val now = Instant.now()
+
+        updates.forEach { (goalId, finalTargetCount) ->
+            val affected = zikrGoalJpaRepository
+                .updateGlobalTargetValueById(goalId, finalTargetCount, now)
+
+            totalUpdated += affected
+        }
+
+        if (totalUpdated > 0) {
+            syncLogRepository.updateSyncLog("zikr_goal")
+            syncLogRepository.updateSyncLog("zikr_goal_map")
+        }
+
+        Log.info("✅ Updated globalTargetValue for $totalUpdated goals")
+
+        return totalUpdated
+    }
+
 }
 
 

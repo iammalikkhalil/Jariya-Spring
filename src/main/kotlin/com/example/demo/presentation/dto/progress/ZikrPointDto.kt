@@ -4,7 +4,7 @@ import java.time.Instant
 
 import com.example.demo.domain.enums.PointsSourceType
 import com.example.demo.domain.model.progress.ZikrPointModel
-
+import java.util.UUID
 
 
 data class ZikrPointDto (
@@ -38,4 +38,11 @@ fun ZikrPointDto.toDomain()  = ZikrPointModel(
     progressId = this.progressId,
     level = this.level,
     progressType = this.progressType,
+)
+
+
+data class ZikrGoalPointsAggregateWithTargetSummary(
+    val goalId: UUID,
+    val totalPoints: Long,
+    val originalTargetCount: Long
 )

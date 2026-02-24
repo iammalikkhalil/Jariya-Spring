@@ -43,7 +43,7 @@ class ZikrGoalEntity(
 
     @field:Min(1)
     @Column(name = "target_value", nullable = false)
-    var targetValue: Int,
+    var targetValue: Long,
 
     @field:Min(1)
     @Column(name = "global_target_value", nullable = false)

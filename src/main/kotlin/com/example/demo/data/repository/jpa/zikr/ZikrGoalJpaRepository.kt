@@ -44,4 +44,24 @@ interface ZikrGoalJpaRepository : JpaRepository<ZikrGoalEntity, UUID> {
         nativeQuery = true
     )
     fun markAsDeleted(id: UUID, deletedAt: Instant): Int
+
+
+    @Transactional
+    @Modifying
+    @Query(
+        value = """
+        UPDATE zikr_goal
+        SET global_target_value = :finalTargetCount,
+            updated_at = :updatedAt
+        WHERE id = :goalId
+          AND is_deleted = false
+    """,
+        nativeQuery = true
+    )
+    fun updateGlobalTargetValueById(
+        goalId: UUID,
+        finalTargetCount: Long,
+        updatedAt: Instant
+    ): Int
+
 }

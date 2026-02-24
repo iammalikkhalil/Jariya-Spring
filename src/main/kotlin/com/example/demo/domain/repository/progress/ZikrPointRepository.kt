@@ -3,6 +3,7 @@ package com.example.demo.domain.repository.progress
 import com.example.demo.domain.model.progress.LeaderboardModel
 import com.example.demo.domain.model.progress.ZikrPointModel
 import com.example.demo.domain.model.progress.ZikrPointSummaryModel
+import com.example.demo.presentation.dto.progress.ZikrGoalPointsAggregateWithTargetSummary
 import com.example.demo.presentation.dto.sync.ZikrPointBulkSyncResponseDto
 import com.example.demo.presentation.dto.sync.ZikrPointSyncDto
 import com.example.demo.presentation.dto.websockets.GoalStatsDto
@@ -31,5 +32,8 @@ interface ZikrPointRepository {
      fun bulkPersistFromClient(
           items: List<ZikrPointSyncDto>
      ): ZikrPointBulkSyncResponseDto
+
+     fun getAggregatedZikrGoalPointsSummary():
+             List<ZikrGoalPointsAggregateWithTargetSummary>
 
 }
